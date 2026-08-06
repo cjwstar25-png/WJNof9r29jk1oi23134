@@ -50,7 +50,7 @@ titleLabel.Size = UDim2.new(1, -30, 0, 24)
 titleLabel.Position = UDim2.new(0, 16, 0, 14)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Text = "Anti Cheat Detected ⛔"
+titleLabel.Text = ""
 titleLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
 titleLabel.TextSize = 15
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -62,7 +62,7 @@ descLabel.Size = UDim2.new(1, -30, 0, 20)
 descLabel.Position = UDim2.new(0, 16, 0, 42)
 descLabel.BackgroundTransparency = 1
 descLabel.Font = Enum.Font.GothamMedium
-descLabel.Text = "안티치트가 감지됨"
+descLabel.Text = ""
 descLabel.TextColor3 = Color3.fromRGB(160, 160, 175)
 descLabel.TextSize = 13
 descLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -187,48 +187,66 @@ local function executeAdvancedBypass()
 	return successFlag
 end
 
-local detectionTriggered = false
-
-local function monitorAntiCheatTriggers()
-	local lastPosition = rootPart.Position
-	local heartbeatConnection
-	
-	heartbeatConnection = RunService.Heartbeat:Connect(function(dt)
-		if detectionTriggered then
-			heartbeatConnection:Disconnect()
-			return
-		end
-		
-		local currentPosition = rootPart.Position
-		local distance = (currentPosition - lastPosition).Magnitude
-		local expectedMaxDistance = humanoid.WalkSpeed * dt * 2.5
-		
-		if distance > expectedMaxDistance and not humanoid.PlatformStand then
-			detectionTriggered = true
-			heartbeatConnection:Disconnect()
-		end
-		
-		lastPosition = currentPosition
-	end)
-end
-
-monitorAntiCheatTriggers()
-
 task.spawn(function()
-	while not detectionTriggered do
-		task.wait(0.1)
-	end
-	
-	showNotification("Anti Cheat Detected ⛔", "안티치트가 감지됨", Color3.fromRGB(230, 70, 70))
-	
 	task.wait(1.5)
 	
-	local bypassResult = executeAdvancedBypass()
+	local internalBypassSuccess = executeAdvancedBypass()
 	
-	task.wait(1.5)
+	local scanRegistry = {}
+	pcall(function()
+		for _, v in ipairs(getgc(true)) do
+			if typeof(v) == "table" then
+				if rawget(v, "Anticheat") or rawget(v, "AntiCheat") or rawget(v, "AC_Core") then
+					table.insert(scanRegistry, v)
+				end
+			end
+		end
+	end)
 	
-	if bypassResult then
-		updateNotification("Bypass Successful! ✅", "우회 성공", Color3.fromRGB(70, 230, 130))
+	local signatureFound = false
+	pcall(function()
+		for _, scriptObj in ipairs(getscripts()) do
+			local source = scriptObj.Source
+			if source and (source:lower():match("anticheat") or source:lower():match("detection")) then
+				signatureFound = true
+				break
+			end
+		end
+	end)
+	
+	local isDetected = (#scanRegistry > 0) or signatureFound
+	
+	if isDetected then
+		showNotification("Anti Cheat Detected ⛔", "안티치트가 감지됨", Color3.fromRGB(230, 70, 70))
+		
+		task.wait(1.5)
+		
+		if internalBypassSuccess then
+			updateNotification("Bypass Successful! ✅", "우회 성공", Color3.fromRGB(70, 230, 130))
+			
+			task.wait(3)
+			
+			local hideTweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
+			local hideTween = TweenService:Create(notificationFrame, hideTweenInfo, {
+				Position = UDim2.new(1, 400, 1, -100)
+			})
+			hideTween:Play()
+			hideTween.Completed:Connect(function()
+				screenGui:Destroy()
+			end)
+		else
+			updateNotification("Bypass Failed ⛔", "우회 실패", Color3.fromRGB(230, 140, 70))
+			
+			task.wait(2)
+			
+			updateNotification("Error ⛔", "Bypass에 실패했습니다. 벤 가능성이 높아졌습니다.", Color3.fromRGB(230, 70, 70))
+			
+			task.wait(2)
+			
+			player:Kick("Bypass에 실패했습니다. 벤 가능성이 높아졌습니다.")
+		end
+	else
+		showNotification("Anti-cheat not detected ✅", "안티치트 감지되지 않음", Color3.fromRGB(70, 230, 130))
 		
 		task.wait(3)
 		
@@ -240,15 +258,5 @@ task.spawn(function()
 		hideTween.Completed:Connect(function()
 			screenGui:Destroy()
 		end)
-	else
-		updateNotification("Bypass Failed ⛔", "우회 실패", Color3.fromRGB(230, 140, 70))
-		
-		task.wait(2)
-		
-		updateNotification("Error ⛔", "Bypass에 실패했습니다. 벤 가능성이 높아졌습니다.", Color3.fromRGB(230, 70, 70))
-		
-		task.wait(2)
-		
-		player:Kick("Bypass에 실패했습니다. 벤 가능성이 높아졌습니다.")
 	end
 end)
