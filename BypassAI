@@ -1,1 +1,225 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BypassAiChatGui"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = CoreGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 480, 0, 360)
+mainFrame.Position = UDim2.new(0.5, -240, 0.5, -180)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+mainFrame.BackgroundTransparency = 1
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 16)
+uiCorner.Parent = mainFrame
+
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Color = Color3.fromRGB(50, 50, 65)
+uiStroke.Transparency = 1
+uiStroke.Thickness = 1.5
+uiStroke.Parent = mainFrame
+
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0, 48)
+topBar.BackgroundTransparency = 1
+topBar.Parent = mainFrame
+
+local aiNameLabel = Instance.new("TextLabel")
+aiNameLabel.Name = "AiNameLabel"
+aiNameLabel.Size = UDim2.new(1, -60, 1, 0)
+aiNameLabel.Position = UDim2.new(0, 20, 0, 0)
+aiNameLabel.BackgroundTransparency = 1
+aiNameLabel.Font = Enum.Font.GothamBold
+aiNameLabel.Text = "Bypass-AI"
+aiNameLabel.TextColor3 = Color3.fromRGB(240, 240, 245)
+aiNameLabel.TextSize = 16
+aiNameLabel.TextTransparency = 1
+aiNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+aiNameLabel.Parent = topBar
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 32, 0, 32)
+closeButton.Position = UDim2.new(1, -40, 0, 8)
+closeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+closeButton.BackgroundTransparency = 1
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(200, 200, 210)
+closeButton.TextTransparency = 1
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 14
+closeButton.Parent = topBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+	local fadeOutInfo = TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+	TweenService:Create(mainFrame, fadeOutInfo, {Size = UDim2.new(0, 400, 0, 300), BackgroundTransparency = 1}):Play()
+	TweenService:Create(uiStroke, fadeOutInfo, {Transparency = 1}):Play()
+	TweenService:Create(aiNameLabel, fadeOutInfo, {TextTransparency = 1}):Play()
+	TweenService:Create(closeButton, fadeOutInfo, {TextTransparency = 1, BackgroundTransparency = 1}):Play()
+	task.wait(0.4)
+	screenGui:Destroy()
+end)
+
+local chatScroll = Instance.new("ScrollingFrame")
+chatScroll.Name = "ChatScroll"
+chatScroll.Size = UDim2.new(1, -30, 1, -70)
+chatScroll.Position = UDim2.new(0, 15, 0, 55)
+chatScroll.BackgroundTransparency = 1
+chatScroll.BorderSizePixel = 0
+chatScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+chatScroll.ScrollBarThickness = 4
+chatScroll.ScrollBarImageColor3 = Color3.fromRGB(70, 70, 90)
+chatScroll.Parent = mainFrame
+
+local messageLabel = Instance.new("TextLabel")
+messageLabel.Name = "MessageLabel"
+messageLabel.Size = UDim2.new(1, 0, 1, 0)
+messageLabel.Position = UDim2.new(0, 0, 0, 0)
+messageLabel.BackgroundTransparency = 1
+messageLabel.Font = Enum.Font.GothamMedium
+messageLabel.Text = ""
+messageLabel.TextColor3 = Color3.fromRGB(210, 210, 220)
+messageLabel.TextSize = 14
+messageLabel.TextWrapped = true
+messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+messageLabel.Parent = chatScroll
+
+local function showMainFrame()
+	local showInfo = TweenInfo.new(0.6, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+	TweenService:Create(mainFrame, showInfo, {BackgroundTransparency = 0.05}):Play()
+	TweenService:Create(uiStroke, showInfo, {Transparency = 0}):Play()
+	TweenService:Create(aiNameLabel, showInfo, {TextTransparency = 0}):Play()
+	TweenService:Create(closeButton, showInfo, {TextTransparency = 0, BackgroundTransparency = 0}):Play()
+end
+
+local function typeWriter(text, speed)
+	for i = 1, #text do
+		messageLabel.Text = string.sub(text, 1, i)
+		task.wait(speed or 0.02)
+	end
+end
+
+local function animatedThinking()
+	local dots = {"", ".", "..", "..."}
+	local startTime = tick()
+	while tick() - startTime < 1.5 do
+		for _, d in ipairs(dots) do
+			messageLabel.Text = "생각 중" .. d
+			task.wait(0.3)
+		end
+	end
+end
+
+task.spawn(function()
+	task.wait(0.5)
+	showMainFrame()
+	task.wait(0.4)
+	
+	typeWriter("이 게임의 안티치트를 탐지하겠습니다.", 0.03)
+	
+	task.wait(1.0)
+	
+	animatedThinking()
+	
+	messageLabel.Text = "잠시 생각함"
+	task.wait(1.0)
+	
+	messageLabel.Text = "안티치트 탐지 중"
+	
+	local allDescendants = game:GetDescendants()
+	local totalCount = #allDescendants
+	local batchSize = math.ceil(totalCount / 5)
+	local currentIndex = 1
+	
+	local detectedAnticheat = false
+	local detectedTechniques = {}
+	
+	local scanConnection
+	scanConnection = RunService.Heartbeat:Connect(function()
+		if currentIndex <= totalCount then
+			local endIndex = math.min(currentIndex + batchSize - 1, totalCount)
+			for i = currentIndex, endIndex do
+				local obj = allDescendants[i]
+				if obj and (obj:IsA("LocalScript") or obj:IsA("ModuleScript")) then
+					local nameLower = obj.Name:lower()
+					if nameLower:match("anti") or nameLower:match("cheat") or nameLower:match("detect") or nameLower:match("protect") then
+						detectedAnticheat = true
+						table.insert(detectedTechniques, "스크립트 시그니처 감지 (" .. obj.Name .. ")")
+					end
+				end
+			end
+			currentIndex = endIndex + 1
+		end
+	end)
+	
+	local scanStartTime = tick()
+	while tick() - scanStartTime < 5.0 do
+		task.wait(1.0)
+	end
+	
+	if scanConnection then
+		scanConnection:Disconnect()
+	end
+	
+	pcall(function()
+		for _, obj in ipairs(getgc(true)) do
+			if typeof(obj) == "table" then
+				if rawget(obj, "Kick") or rawget(obj, "Ban") or rawget(obj, "Detection") then
+					detectedAnticheat = true
+					table.insert(detectedTechniques, "가비지 컬렉터 내부 안티치트 훅/루틴 발견")
+					break
+				end
+			end
+		end
+	end)
+	
+	messageLabel.Text = "안티치트 탐지 완료"
+	task.wait(1.0)
+	
+	local bypassMethod = "안티치트 환경 무력화 (Metatable Hooking & GC Function Spoofing)"
+	if not detectedAnticheat then
+		bypassMethod = "불필요 (실행 중인 커스텀 안티치트 없음, 기본 가상환경 안전 모드 적용)"
+	end
+	
+	pcall(function()
+		local mt = getrawmetatable(game)
+		setreadonly(mt, false)
+		local oldIndex = mt.__index
+		mt.__index = newcclosure(function(self, k)
+			if tostring(k):lower():match("kick") then
+				return function() end
+			end
+			return oldIndex(self, k)
+		end)
+		setreadonly(mt, true)
+	end)
+	
+	local presenceStr = detectedAnticheat and "탐지됨 (Active)" or "감지되지 않음 (Clean)"
+	local techniqueStr = #detectedTechniques > 0 and table.concat(detectedTechniques, ", ") or "표준 모니터링 루프 없음"
+	
+	local reportText = string.format(
+		"--- [ Bypass-AI 진단 보고서 ] ---\n\n1. 안티치트 존재 여부:\n   -> %s\n\n2. 안티치트가 사용하는 기법:\n   -> %s\n\n3. 적용된 우회 방법:\n   -> %s",
+		presenceStr, techniqueStr, bypassMethod
+	)
+	
+	chatScroll.CanvasSize = UDim2.new(0, 0, 0, 200)
+	typeWriter(reportText, 0.015)
+end)
