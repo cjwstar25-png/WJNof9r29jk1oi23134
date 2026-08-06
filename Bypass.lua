@@ -36,7 +36,7 @@ local accentBar = Instance.new("Frame")
 accentBar.Name = "AccentBar"
 accentBar.Size = UDim2.new(0, 4, 1, 0)
 accentBar.Position = UDim2.new(0, 0, 0, 0)
-accentBar.BackgroundColor3 = Color3.fromRGB(230, 70, 70)
+accentBar.BackgroundColor3 = Color3.fromRGB(70, 230, 130)
 accentBar.BorderSizePixel = 0
 accentBar.Parent = notificationFrame
 
@@ -102,85 +102,66 @@ local function updateNotification(titleText, descText, accentColor)
 	end)
 end
 
-local function executeAdvancedBypass()
+local function executeHyperionSafeBypass()
 	local successFlag = false
 	
-	local function bypassMetatable()
-		pcall(function()
-			local mt = getrawmetatable(game)
-			setreadonly(mt, false)
-			local oldIndex = mt.__index
-			local oldNamecall = mt.__namecall
-			
-			mt.__index = newcclosure(function(self, k)
-				if tostring(k):lower():match("kick") or tostring(k):lower():match("ban") then
+	pcall(function()
+		if getgenv then
+			getgenv().SecureMode = true
+		end
+		
+		local mt = getrawmetatable(game)
+		setreadonly(mt, false)
+		local oldIndex = mt.__index
+		local oldNamecall = mt.__namecall
+		
+		mt.__index = newcclosure(function(self, k)
+			local keyStr = tostring(k):lower()
+			if keyStr:match("kick") or keyStr:match("ban") or keyStr:match("destroy") or keyStr:match("remove") then
+				if self == player or self == character then
 					return function() end
 				end
-				return oldIndex(self, k)
-			end)
-			
-			mt.__namecall = newcclosure(function(self, ...)
-				local method = getnamecallmethod():lower()
-				if method == "kick" or method == "raisenerror" then
-					return
-				end
-				return oldNamecall(self, ...)
-			end)
-			
-			setreadonly(mt, true)
-		end)
-	end
-	
-	local function bypassGarbageCollection()
-		pcall(function()
-			for _, obj in ipairs(getgc(true)) do
-				if typeof(obj) == "function" then
-					local info = debug.getinfo(obj)
-					if info and info.name then
-						local name = info.name:lower()
-						if name:match("anticheat") or name:match("detect") or name:match("integrity") or name:match("check") then
-							pcall(function()
-								hookfunction(obj, function() return true end)
-							end)
-						end
-					end
-				elseif typeof(obj) == "table" then
-					pcall(function()
-						if rawget(obj, "Kick") then rawset(obj, "Kick", function() end) end
-						if rawget(obj, "Ban") then rawset(obj, "Ban", function() end) end
-						if rawget(obj, "Report") then rawset(obj, "Report", function() end) end
-					end)
-				end
 			end
+			return oldIndex(self, k)
 		end)
-	end
-	
-	local function bypassNamecallAndHooks()
-		pcall(function()
-			if syn and syn.protect_gui then
-				local gui = Instance.new("ScreenGui")
-				syn.protect_gui(gui)
+		
+		mt.__namecall = newcclosure(function(self, ...)
+			local method = getnamecallmethod():lower()
+			if method == "kick" or method == "raisenerror" or method == "reporterror" then
+				return
 			end
-			
-			local mt = getrawmetatable(game)
-			setreadonly(mt, false)
-			local oldNc = mt.__namecall
-			mt.__namecall = newcclosure(function(self, ...)
-				local method = getnamecallmethod()
-				local args = {...}
-				if method == "FireServer" and self.Name:lower():match("analytics") then
-					return
-				end
-				return oldNc(self, unpack(args))
-			end)
-			setreadonly(mt, true)
+			return oldNamecall(self, ...)
 		end)
-	end
+		
+		setreadonly(mt, true)
+	end)
 	
 	pcall(function()
-		bypassMetatable()
-		bypassGarbageCollection()
-		bypassNamecallAndHooks()
+		for _, obj in ipairs(getgc(true)) do
+			if typeof(obj) == "function" then
+				local info = debug.getinfo(obj)
+				if info and info.name then
+					local name = info.name:lower()
+					if name:match("anticheat") or name:match("integrity") or name:match("teleport") or name:match("checkspeed") then
+						pcall(function()
+							hookfunction(obj, function(...) return true end)
+						end)
+					end
+				end
+			elseif typeof(obj) == "table" then
+				pcall(function()
+					if rawget(obj, "Kick") then rawset(obj, "Kick", function() end) end
+					if rawget(obj, "Ban") then rawset(obj, "Ban", function() end) end
+					if rawget(obj, "Detection") then rawset(obj, "Detection", function() end) end
+				end)
+			end
+		end
+	end)
+	
+	pcall(function()
+		local env = getgenv and getgenv() or _G
+		env.hookfunction = hookfunction or env.hookfunction
+		env.newcclosure = newcclosure or env.newcclosure
 		successFlag = true
 	end)
 	
@@ -188,40 +169,32 @@ local function executeAdvancedBypass()
 end
 
 task.spawn(function()
-	task.wait(1.5)
+	task.wait(1.0)
 	
-	local internalBypassSuccess = executeAdvancedBypass()
+	local bypassResult = executeHyperionSafeBypass()
 	
-	local scanRegistry = {}
+	task.wait(1.0)
+	
+	local heuristicScore = 0
 	pcall(function()
-		for _, v in ipairs(getgc(true)) do
-			if typeof(v) == "table" then
-				if rawget(v, "Anticheat") or rawget(v, "AntiCheat") or rawget(v, "AC_Core") then
-					table.insert(scanRegistry, v)
+		for _, descendant in ipairs(game:GetDescendants()) do
+			if descendant:IsA("LocalScript") or descendant:IsA("ModuleScript") then
+				local nameLower = descendant.Name:lower()
+				if nameLower:match("anti") or nameLower:match("cheat") or nameLower:match("detect") or nameLower:match("ac") or nameLower:match("protect") then
+					heuristicScore = heuristicScore + 1
 				end
 			end
 		end
 	end)
 	
-	local signatureFound = false
-	pcall(function()
-		for _, scriptObj in ipairs(getscripts()) do
-			local source = scriptObj.Source
-			if source and (source:lower():match("anticheat") or source:lower():match("detection")) then
-				signatureFound = true
-				break
-			end
-		end
-	end)
-	
-	local isDetected = (#scanRegistry > 0) or signatureFound
+	local isDetected = heuristicScore > 0
 	
 	if isDetected then
 		showNotification("Anti Cheat Detected ⛔", "안티치트가 감지됨", Color3.fromRGB(230, 70, 70))
 		
 		task.wait(1.5)
 		
-		if internalBypassSuccess then
+		if bypassResult then
 			updateNotification("Bypass Successful! ✅", "우회 성공", Color3.fromRGB(70, 230, 130))
 			
 			task.wait(3)
