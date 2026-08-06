@@ -1,3 +1,4 @@
+task.wait(10)
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
