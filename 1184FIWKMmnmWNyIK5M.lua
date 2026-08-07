@@ -1,17 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
-
-
---4123j4124cj124c12c4nj12hc4j1h24cu12u4ch124cj124cj124124cj124cj124c124cu
---41j2c4j124j124j124j124hcbbvuerutgwoietwietiwertwoiertoweirtiowertjffnwsieurtwer
---gwthywqjtwerbfhwerthiwuerotiwherut
---wetwketwert
---124X1DI2U4HX1IU2H4UX1J2O4124
-
-
-
-
-
 pcall(function()
     local mt = getrawmetatable(game)
     setreadonly(mt, false)
@@ -70,6 +58,7 @@ local Config = {
     
     Aimbot = false,
     Aimbot_Smooth = 2,
+    Silent_Aim = false, -- 사일런트 에임 추가
     Hitbox = "Head",
     
     Ragebot = false,
@@ -175,7 +164,7 @@ local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(1, -120, 1, 0)
 TitleText.Position = UDim2.new(0, 16, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "Ultimate Tabbed Hub v10.0 [Fixed & Stable]"
+TitleText.Text = "Ultimate Tabbed Hub v10.1 [Fixed & Enhanced]"
 TitleText.TextColor3 = Color3.fromRGB(240, 240, 255)
 TitleText.TextSize = 14
 TitleText.Font = Enum.Font.GothamBold
@@ -326,6 +315,7 @@ local function CreateToggleInTab(parentTab, name, default, callback)
 end
 
 CreateToggleInTab(CombatTab, "Aimbot (Auto Lock & FOV)", Config.Aimbot, function(v) Config.Aimbot = v end)
+CreateToggleInTab(CombatTab, "Silent Aim (Bullet Curve)", Config.Silent_Aim, function(v) Config.Silent_Aim = v end)
 CreateToggleInTab(CombatTab, "Ragebot (Teleport + Glitch Jitter)", Config.Ragebot, function(v) Config.Ragebot = v end)
 CreateToggleInTab(CombatTab, "Wall Check", Config.Wall_Check, function(v) Config.Wall_Check = v end)
 CreateToggleInTab(CombatTab, "Triggerbot", Config.Triggerbot, function(v) Config.Triggerbot = v end)
@@ -440,6 +430,17 @@ local SkeletonJoints = {
     {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"}
 }
 
+-- 캐릭터 유효성 확인 함수 (없거나 죽은 사람 제외)
+local function IsPlayerValid(player)
+    if player == LocalPlayer then return false end
+    local char = player.Character
+    if not char then return false end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not humanoid or humanoid.Health <= 0 then return false end
+    return true
+end
+
 local function CreateESP(player)
     if player == LocalPlayer then return end
 
@@ -480,6 +481,7 @@ local function CreateESP(player)
             healthBarLine.Visible = false
             healthBarLine.Thickness = 1.5
             healthBarLine.Transparency = 0.9
+            healthBarLine.Color = Color3.fromRGB(0, 255, 100)
         end
     end)
 
@@ -500,7 +502,7 @@ local function CreateESP(player)
     connection = RunService.RenderStepped:Connect(function()
         pcall(function()
             local cam = Workspace.CurrentCamera
-            if not cam or not Config.ESP_Master or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+            if not cam or not Config.ESP_Master or not IsPlayerValid(player) then
                 highlight.Adornee = nil
                 if tracerLine then tracerLine.Visible = false end
                 if infoText then infoText.Visible = false end
@@ -514,17 +516,6 @@ local function CreateESP(player)
             local char = player.Character
             local hrp = char:FindFirstChild("HumanoidRootPart")
             local humanoid = char:FindFirstChildOfClass("Humanoid")
-
-            if not humanoid or humanoid.Health <= 0 then
-                highlight.Adornee = nil
-                if tracerLine then tracerLine.Visible = false end
-                if infoText then infoText.Visible = false end
-                if boxLine then boxLine.Visible = false end
-                if healthBarBg then healthBarBg.Visible = false end
-                if healthBarLine then healthBarLine.Visible = false end
-                for _, l in ipairs(skeletonLines) do l.Visible = false end
-                return
-            end
 
             local color = GetPlayerColor(player)
             highlight.Adornee = char
@@ -657,11 +648,9 @@ local function GetClosestTargetForAimbot()
 
     for _, p in ipairs(Players:GetPlayers()) do
         pcall(function()
-            if p ~= LocalPlayer and p.Character then
-                local humanoid = p.Character:FindFirstChildOfClass("Humanoid")
+            if IsPlayerValid(p) then
                 local part = p.Character:FindFirstChild(Config.Hitbox) or p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                
-                if humanoid and part and humanoid.Health > 0 then
+                if part then
                     if not Config.Team_Filter or p.Team ~= LocalPlayer.Team then
                         local vec, onScreen = cam:WorldToViewportPoint(part.Position)
                         if onScreen then
@@ -681,7 +670,38 @@ local function GetClosestTargetForAimbot()
     return target
 end
 
--- 가장 가까운 플레이어 타겟팅 정확도 수정 (거리순 확실한 비교)
+-- 사일런트 에임용 타겟 가져오기 (FOV 내에서 가장 가까운 적)
+local function GetClosestTargetForSilentAim()
+    local target = nil
+    local shortestDist = Config.FOV_Radius
+    local mousePos = Vector2.new(Mouse.X, Mouse.Y)
+    local cam = Workspace.CurrentCamera
+    if not cam then return nil end
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        pcall(function()
+            if IsPlayerValid(p) then
+                local part = p.Character:FindFirstChild(Config.Hitbox) or p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                if part then
+                    if not Config.Team_Filter or p.Team ~= LocalPlayer.Team then
+                        local vec, onScreen = cam:WorldToViewportPoint(part.Position)
+                        if onScreen then
+                            local screenDist = (mousePos - Vector2.new(vec.X, vec.Y)).Magnitude
+                            if screenDist < shortestDist then
+                                if IsVisible(part, p.Character) then
+                                    shortestDist = screenDist
+                                    target = part
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+    return target
+end
+
 local function GetClosestTargetForRagebot()
     local target = nil
     local shortestDist = math.huge
@@ -692,11 +712,9 @@ local function GetClosestTargetForRagebot()
 
     for _, p in ipairs(Players:GetPlayers()) do
         pcall(function()
-            if p ~= LocalPlayer and p.Character then
-                local humanoid = p.Character:FindFirstChildOfClass("Humanoid")
+            if IsPlayerValid(p) then
                 local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                
-                if humanoid and hrp and humanoid.Health > 0 then
+                if hrp then
                     if not Config.Team_Filter or p.Team ~= LocalPlayer.Team then
                         if not Config.Wall_Check or IsVisible(hrp, p.Character) then
                             local dist = (myRoot.Position - hrp.Position).Magnitude
@@ -720,13 +738,43 @@ UserInputService.InputBegan:Connect(function(input, gp)
     end
 end)
 
+-- 사일런트 에임 후킹 처리 (Namecall 및 Raycast 가로채기)
+pcall(function()
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        if Config.Silent_Aim and not checkcaller() then
+            if method == "FindPartOnRayWithIgnoreList" or method == "FindPartOnRay" or method == "Raycast" then
+                local targetPart = GetClosestTargetForSilentAim()
+                if targetPart and Workspace.CurrentCamera then
+                    local origin = args[1]
+                    if typeof(origin) == "Ray" then
+                        origin = origin.Origin
+                    end
+                    if typeof(origin) == "Vector3" then
+                        local newDir = (targetPart.Position - origin).Unit * 1000
+                        if method == "Raycast" then
+                            args[2] = newDir
+                        else
+                            args[1] = Ray.new(origin, newDir)
+                        end
+                        return oldNamecall(self, unpack(args))
+                    end
+                end
+            end
+        end
+        return oldNamecall(self, ...)
+    end)
+end)
+
 RunService.RenderStepped:Connect(function()
     pcall(function()
         local cam = Workspace.CurrentCamera
         if not cam then return end
 
         if FOVCircle then
-            if Config.Aimbot then
+            if Config.Aimbot or Config.Silent_Aim then
                 FOVCircle.Visible = true
                 FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
                 FOVCircle.Radius = Config.FOV_Radius
@@ -743,21 +791,28 @@ RunService.RenderStepped:Connect(function()
                 if part then
                     local targetCF = CFrame.new(cam.CFrame.Position, part.Position)
                     cam.CFrame = cam.CFrame:Lerp(targetCF, 1 / Config.Aimbot_Smooth)
-                    
-                    if Config.Triggerbot then
-                        local vec, onScreen = cam:WorldToViewportPoint(part.Position)
-                        if onScreen then
-                            local mousePos = Vector2.new(Mouse.X, Mouse.Y)
-                            if (mousePos - Vector2.new(vec.X, vec.Y)).Magnitude < 35 then
-                                pcall(function() mouse1click() end)
-                            end
+                end
+            end
+        end
+
+        -- 트리거봇 개별 처리 (에임봇/레이지봇과 충돌하지 않도록 독립 분리)
+        if Config.Triggerbot and not Config.Ragebot then
+            local target = GetClosestTargetForAimbot()
+            if target and target.Character then
+                local part = target.Character:FindFirstChild(Config.Hitbox) or target.Character:FindFirstChild("Head")
+                if part then
+                    local vec, onScreen = cam:WorldToViewportPoint(part.Position)
+                    if onScreen then
+                        local mousePos = Vector2.new(Mouse.X, Mouse.Y)
+                        if (mousePos - Vector2.new(vec.X, vec.Y)).Magnitude < 35 then
+                            pcall(function() mouse1click() end)
                         end
                     end
                 end
             end
         end
 
-        -- 레이지봇 로직 (타 기능 충돌 방지 및 안전한 순간이동 처리)
+        -- 레이지봇 로직 (공허 버그 수정 및 트리거봇 동시 사용 충돌 해결)
         if Config.Ragebot then
             local target = GetClosestTargetForRagebot()
             local char = LocalPlayer.Character
@@ -780,7 +835,7 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- Fullbright 버그 수정 (화면이 어두워지는 현상 해결)
+        -- Fullbright 버그 수정
         if Config.Fullbright then
             Lighting.Brightness = 3
             Lighting.ClockTime = 12
