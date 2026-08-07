@@ -1,28 +1,32 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
 pcall(function()
-    local mt = getrawmetatable(game)
-    setreadonly(mt, false)
-    local oldNamecall = mt.__namecall
-    
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if not checkcaller() and (method == "Kick" or method == "kick" or method == "Teleport" or method == "TeleportToService" or method == "SaveInstance") then
-            return
-        end
-        return oldNamecall(self, ...)
-    end)
-    setreadonly(mt, true)
+    if hookmetamethod then
+        local mt = getrawmetatable(game)
+        setreadonly(mt, false)
+        local oldNamecall = mt.__namecall
+        
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            if not checkcaller() and (method == "Kick" or method == "kick" or method == "Teleport" or method == "TeleportToService" or method == "SaveInstance") then
+                return
+            end
+            return oldNamecall(self, ...)
+        end)
+        setreadonly(mt, true)
+    end
 end)
 
 pcall(function()
-    local oldIndex
-    oldIndex = hookmetamethod(game, "__index", function(self, k)
-        if not checkcaller() and (k == "WalkSpeed" or k == "JumpPower" or k == "Health") then
-            return 16 
-        end
-        return oldIndex(self, k)
-    end)
+    if hookmetamethod then
+        local oldIndex
+        oldIndex = hookmetamethod(game, "__index", function(self, k)
+            if not checkcaller() and (k == "WalkSpeed" or k == "JumpPower" or k == "Health") then
+                return 16 
+            end
+            return oldIndex(self, k)
+        end)
+    end
 end)
 
 pcall(function()
@@ -58,7 +62,7 @@ local Config = {
     
     Aimbot = false,
     Aimbot_Smooth = 2,
-    Silent_Aim = false, -- 사일런트 에임 추가
+    Silent_Aim = false,
     Hitbox = "Head",
     
     Ragebot = false,
@@ -164,7 +168,7 @@ local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(1, -120, 1, 0)
 TitleText.Position = UDim2.new(0, 16, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "Ultimate Tabbed Hub v10.1 [Fixed & Enhanced]"
+TitleText.Text = "Ultimate Tabbed Hub v10.2 [Safe Hook]"
 TitleText.TextColor3 = Color3.fromRGB(240, 240, 255)
 TitleText.TextSize = 14
 TitleText.Font = Enum.Font.GothamBold
@@ -430,7 +434,6 @@ local SkeletonJoints = {
     {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"}
 }
 
--- 캐릭터 유효성 확인 함수 (없거나 죽은 사람 제외)
 local function IsPlayerValid(player)
     if player == LocalPlayer then return false end
     local char = player.Character
@@ -670,7 +673,6 @@ local function GetClosestTargetForAimbot()
     return target
 end
 
--- 사일런트 에임용 타겟 가져오기 (FOV 내에서 가장 가까운 적)
 local function GetClosestTargetForSilentAim()
     local target = nil
     local shortestDist = Config.FOV_Radius
@@ -738,34 +740,35 @@ UserInputService.InputBegan:Connect(function(input, gp)
     end
 end)
 
--- 사일런트 에임 후킹 처리 (Namecall 및 Raycast 가로채기)
 pcall(function()
-    local oldNamecall
-    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-        local method = getnamecallmethod()
-        local args = {...}
-        if Config.Silent_Aim and not checkcaller() then
-            if method == "FindPartOnRayWithIgnoreList" or method == "FindPartOnRay" or method == "Raycast" then
-                local targetPart = GetClosestTargetForSilentAim()
-                if targetPart and Workspace.CurrentCamera then
-                    local origin = args[1]
-                    if typeof(origin) == "Ray" then
-                        origin = origin.Origin
-                    end
-                    if typeof(origin) == "Vector3" then
-                        local newDir = (targetPart.Position - origin).Unit * 1000
-                        if method == "Raycast" then
-                            args[2] = newDir
-                        else
-                            args[1] = Ray.new(origin, newDir)
+    if hookmetamethod then
+        local oldNamecall
+        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            if Config.Silent_Aim and not checkcaller() then
+                if method == "FindPartOnRayWithIgnoreList" or method == "FindPartOnRay" or method == "Raycast" then
+                    local targetPart = GetClosestTargetForSilentAim()
+                    if targetPart and Workspace.CurrentCamera then
+                        local origin = args[1]
+                        if typeof(origin) == "Ray" then
+                            origin = origin.Origin
                         end
-                        return oldNamecall(self, unpack(args))
+                        if typeof(origin) == "Vector3" then
+                            local newDir = (targetPart.Position - origin).Unit * 1000
+                            if method == "Raycast" then
+                                args[2] = newDir
+                            else
+                                args[1] = Ray.new(origin, newDir)
+                            end
+                            return oldNamecall(self, unpack(args))
+                        end
                     end
                 end
             end
-        end
-        return oldNamecall(self, ...)
-    end)
+            return oldNamecall(self, ...)
+        end)
+    end
 end)
 
 RunService.RenderStepped:Connect(function()
@@ -783,7 +786,6 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- 에임봇 로직
         if Config.Aimbot then
             local target = GetClosestTargetForAimbot()
             if target and target.Character then
@@ -795,7 +797,6 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- 트리거봇 개별 처리 (에임봇/레이지봇과 충돌하지 않도록 독립 분리)
         if Config.Triggerbot and not Config.Ragebot then
             local target = GetClosestTargetForAimbot()
             if target and target.Character then
@@ -812,7 +813,6 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- 레이지봇 로직 (공허 버그 수정 및 트리거봇 동시 사용 충돌 해결)
         if Config.Ragebot then
             local target = GetClosestTargetForRagebot()
             local char = LocalPlayer.Character
@@ -835,7 +835,6 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        -- Fullbright 버그 수정
         if Config.Fullbright then
             Lighting.Brightness = 3
             Lighting.ClockTime = 12
