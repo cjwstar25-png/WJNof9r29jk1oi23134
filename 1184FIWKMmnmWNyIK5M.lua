@@ -5,10 +5,9 @@ pcall(function()
         local mt = getrawmetatable(game)
         setreadonly(mt, false)
         local oldNamecall = mt.__namecall
-        
         mt.__namecall = newcclosure(function(self, ...)
             local method = getnamecallmethod()
-            if not checkcaller() and (method == "Kick" or method == "kick" or method == "Teleport" or method == "TeleportToService" or method == "SaveInstance") then
+            if not checkcaller() and (method == "Kick" or method == "kick" or method == "Teleport" or method == "Ban") then
                 return
             end
             return oldNamecall(self, ...)
@@ -17,35 +16,14 @@ pcall(function()
     end
 end)
 
-pcall(function()
-    if hookmetamethod then
-        local oldIndex
-        oldIndex = hookmetamethod(game, "__index", function(self, k)
-            if not checkcaller() and (k == "WalkSpeed" or k == "JumpPower" or k == "Health") then
-                return 16 
-            end
-            return oldIndex(self, k)
-        end)
-    end
-end)
-
-pcall(function()
-    for _, v in ipairs({"DevConsoleSecurity", "RobloxReplicatedStorage", "ClientAnticheat", "BanService", "AntiExploit"}) do
-        pcall(function()
-            local coreGui = game:GetService("CoreGui")
-            if coreGui:FindFirstChild(v) then
-                coreGui[v]:Destroy()
-            end
-        end)
-    end
-end)
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -54,22 +32,22 @@ local Mouse = LocalPlayer:GetMouse()
 local Config = {
     ESP_Master = true,
     Skeleton_ESP = true,
-    Box_ESP = true,       
-    Health_Bar = true,    
+    Box_ESP = true,         
+    Health_Bar = true,      
     Tracer_Lines = true,
     Info_Display = true,
     Team_Filter = false,
+    Chams_Enabled = false,
     
     Aimbot = false,
     Aimbot_Smooth = 2,
-    Silent_Aim = false,
     Hitbox = "Head",
     
     Ragebot = false,
     Wall_Check = false,
     Triggerbot = false,
     
-    FOV_Radius = 300,
+    FOV_Radius = 350,
     Infinite_Jump = false,
     
     Fly_Mode = false,
@@ -84,14 +62,14 @@ local Config = {
 }
 
 pcall(function()
-    local oldGui = game:GetService("CoreGui"):FindFirstChild("UltimateTabbedHubV10")
+    local oldGui = CoreGui:FindFirstChild("CubicIndependentHub")
     if oldGui then oldGui:Destroy() end
-    local oldGuiPlayer = LocalPlayer.PlayerGui:FindFirstChild("UltimateTabbedHubV10")
+    local oldGuiPlayer = LocalPlayer.PlayerGui:FindFirstChild("CubicIndependentHub")
     if oldGuiPlayer then oldGuiPlayer:Destroy() end
 end)
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "UltimateTabbedHubV10"
+ScreenGui.Name = "CubicIndependentHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.IgnoreGuiInset = true
@@ -99,19 +77,26 @@ ScreenGui.IgnoreGuiInset = true
 pcall(function()
     if syn and syn.protect_gui then
         syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game:GetService("CoreGui")
+        ScreenGui.Parent = CoreGui
     elseif gethui then
         ScreenGui.Parent = gethui()
     else
-        ScreenGui.Parent = game:GetService("CoreGui")
+        ScreenGui.Parent = CoreGui
     end
 end)
 
 if not ScreenGui.Parent then
-    pcall(function()
-        ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    end)
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 end
+
+local DimBackground = Instance.new("Frame")
+DimBackground.Name = "DimBackground"
+DimBackground.Size = UDim2.new(1, 0, 1, 0)
+DimBackground.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+DimBackground.BackgroundTransparency = 1
+DimBackground.BorderSizePixel = 0
+DimBackground.ZIndex = 0
+DimBackground.Parent = ScreenGui
 
 local FOVCircle = nil
 pcall(function()
@@ -127,187 +112,158 @@ pcall(function()
     end
 end)
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 620, 0, 480)
-MainFrame.Position = UDim2.new(0.5, -310, 0.5, -240)
-MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
-MainFrame.BackgroundTransparency = 0.04
-MainFrame.BorderSizePixel = 0
-MainFrame.Visible = true
-MainFrame.Parent = ScreenGui
+local WindowsList = {}
+local isMenuVisible = true
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 14)
-MainCorner.Parent = MainFrame
+-- UI 크기를 훨씬 더 키우고, 최소화 버튼을 완전히 제거
+local function CreateIndependentWindow(titleText, defaultPos, layoutOrder)
+    local columnFrame = Instance.new("ScrollingFrame")
+    columnFrame.Name = titleText .. "Window"
+    columnFrame.Size = UDim2.new(0, 260, 0, 560) -- 창 크기 대폭 확장
+    columnFrame.Position = defaultPos
+    columnFrame.BackgroundColor3 = Color3.fromRGB(12, 16, 25)
+    columnFrame.BackgroundTransparency = 0.1
+    columnFrame.BorderSizePixel = 0
+    columnFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    columnFrame.ScrollBarThickness = 4
+    columnFrame.ScrollBarImageColor3 = Color3.fromRGB(50, 110, 200)
+    columnFrame.ZIndex = 2
+    columnFrame.Parent = ScreenGui
 
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(80, 140, 255)
-MainStroke.Thickness = 1.5
-MainStroke.Transparency = 0.2
-MainStroke.Parent = MainFrame
+    local colCorner = Instance.new("UICorner")
+    colCorner.CornerRadius = UDim.new(0, 8)
+    colCorner.Parent = columnFrame
 
-local TitleBar = Instance.new("Frame")
-TitleBar.Size = UDim2.new(1, 0, 0, 48)
-TitleBar.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
-TitleBar.BorderSizePixel = 0
-TitleBar.Parent = MainFrame
+    local colStroke = Instance.new("UIStroke")
+    colStroke.Color = Color3.fromRGB(40, 80, 150)
+    colStroke.Thickness = 1.5
+    colStroke.Transparency = 0.2
+    colStroke.Parent = columnFrame
 
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 14)
-TitleCorner.Parent = TitleBar
+    local colTitle = Instance.new("Frame")
+    colTitle.Size = UDim2.new(1, 0, 0, 42)
+    colTitle.BackgroundColor3 = Color3.fromRGB(18, 24, 38)
+    colTitle.BorderSizePixel = 0
+    colTitle.ZIndex = 3
+    colTitle.Parent = columnFrame
 
-local TitleCover = Instance.new("Frame")
-TitleCover.Size = UDim2.new(1, 0, 0, 12)
-TitleCover.Position = UDim2.new(0, 0, 1, -12)
-TitleCover.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
-TitleCover.BorderSizePixel = 0
-TitleCover.Parent = TitleBar
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 8)
+    titleCorner.Parent = colTitle
 
-local TitleText = Instance.new("TextLabel")
-TitleText.Size = UDim2.new(1, -120, 1, 0)
-TitleText.Position = UDim2.new(0, 16, 0, 0)
-TitleText.BackgroundTransparency = 1
-TitleText.Text = "Ultimate Tabbed Hub v10.2 [Safe Hook]"
-TitleText.TextColor3 = Color3.fromRGB(240, 240, 255)
-TitleText.TextSize = 14
-TitleText.Font = Enum.Font.GothamBold
-TitleText.TextXAlignment = Enum.TextXAlignment.Left
-TitleText.Parent = TitleBar
+    local titleCover = Instance.new("Frame")
+    titleCover.Size = UDim2.new(1, 0, 0, 8)
+    titleCover.Position = UDim2.new(0, 0, 1, -8)
+    titleCover.BackgroundColor3 = Color3.fromRGB(18, 24, 38)
+    titleCover.BorderSizePixel = 0
+    titleCover.ZIndex = 3
+    titleCover.Parent = colTitle
 
-local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 32, 0, 32)
-MinimizeBtn.Position = UDim2.new(1, -42, 0.5, -16)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
-MinimizeBtn.Text = "-"
-MinimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 220)
-MinimizeBtn.TextSize = 16
-MinimizeBtn.Font = Enum.Font.GothamBold
-MinimizeBtn.AutoButtonColor = false
-MinimizeBtn.Parent = TitleBar
+    local titleTextLabel = Instance.new("TextLabel")
+    titleTextLabel.Size = UDim2.new(1, -20, 1, 0)
+    titleTextLabel.Position = UDim2.new(0, 12, 0, 0)
+    titleTextLabel.BackgroundTransparency = 1
+    titleTextLabel.Text = titleText
+    titleTextLabel.TextColor3 = Color3.fromRGB(220, 235, 255)
+    titleTextLabel.TextSize = 14
+    titleTextLabel.Font = Enum.Font.GothamBold
+    titleTextLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleTextLabel.ZIndex = 4
+    titleTextLabel.Parent = colTitle
 
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 8)
-MinCorner.Parent = MinimizeBtn
+    local innerList = Instance.new("UIListLayout")
+    innerList.SortOrder = Enum.SortOrder.LayoutOrder
+    innerList.Padding = UDim.new(0, 8)
+    innerList.Parent = columnFrame
 
-local TabBar = Instance.new("Frame")
-TabBar.Size = UDim2.new(1, -24, 0, 36)
-TabBar.Position = UDim2.new(0, 12, 0, 56)
-TabBar.BackgroundTransparency = 1
-TabBar.Parent = MainFrame
+    local innerPad = Instance.new("UIPadding")
+    innerPad.PaddingTop = UDim.new(0, 52)
+    innerPad.PaddingBottom = UDim.new(0, 12)
+    innerPad.PaddingLeft = UDim.new(0, 10)
+    innerPad.PaddingRight = UDim.new(0, 10)
+    innerPad.Parent = columnFrame
 
-local TabListLayout = Instance.new("UIListLayout")
-TabListLayout.FillDirection = Enum.FillDirection.Horizontal
-TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabListLayout.Padding = UDim.new(0, 8)
-TabListLayout.Parent = TabBar
-
-local ContainerFrame = Instance.new("Frame")
-ContainerFrame.Size = UDim2.new(1, -24, 1, -108)
-ContainerFrame.Position = UDim2.new(0, 12, 0, 100)
-ContainerFrame.BackgroundTransparency = 1
-ContainerFrame.Parent = MainFrame
-
-local Tabs = {}
-local CurrentActiveTab = nil
-
-local function CreateTab(name, layoutOrder)
-    local tabBtn = Instance.new("TextButton")
-    tabBtn.Size = UDim2.new(0, 110, 1, 0)
-    tabBtn.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
-    tabBtn.Text = name
-    tabBtn.TextColor3 = Color3.fromRGB(150, 150, 170)
-    tabBtn.TextSize = 13
-    tabBtn.Font = Enum.Font.GothamBold
-    tabBtn.AutoButtonColor = false
-    tabBtn.LayoutOrder = layoutOrder
-    tabBtn.Parent = TabBar
-
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = tabBtn
-
-    local tabContent = Instance.new("ScrollingFrame")
-    tabContent.Size = UDim2.new(1, 0, 1, 0)
-    tabContent.BackgroundTransparency = 1
-    tabContent.CanvasSize = UDim2.new(0, 0, 0, 1000)
-    tabContent.ScrollBarThickness = 5
-    tabContent.ScrollBarImageColor3 = Color3.fromRGB(80, 140, 255)
-    tabContent.Visible = false
-    tabContent.Parent = ContainerFrame
-
-    local contentLayout = Instance.new("UIListLayout")
-    contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    contentLayout.Padding = UDim.new(0, 8)
-    contentLayout.Parent = tabContent
-
-    tabBtn.MouseButton1Click:Connect(function()
-        for _, t in pairs(Tabs) do
-            t.Content.Visible = false
-            TweenService:Create(t.Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(22, 22, 30), TextColor3 = Color3.fromRGB(150, 150, 170)}):Play()
-        end
-        tabContent.Visible = true
-        TweenService:Create(tabBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 100, 200), TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-        CurrentActiveTab = tabContent
+    innerList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        columnFrame.CanvasSize = UDim2.new(0, 0, 0, innerList.AbsoluteContentSize.Y + 64)
     end)
 
-    Tabs[name] = {Button = tabBtn, Content = tabContent}
-    return tabContent
+    local dragging, dragInput, dragStart, startPos
+    colTitle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = columnFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    colTitle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            columnFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    table.insert(WindowsList, columnFrame)
+    return columnFrame
 end
 
-local CombatTab = CreateTab("Combat", 1)
-local VisualTab = CreateTab("Visuals", 2)
-local PlayerTab = CreateTab("Player", 3)
-local MiscTab = CreateTab("Misc", 4)
+-- 4개의 열 간격과 위치를 전체 화면 폭에 맞게 배치
+local CombatCol = CreateIndependentWindow("Combat", UDim2.new(0.5, -550, 0.5, -280), 1)
+local VisualCol = CreateIndependentWindow("Visuals & ESP", UDim2.new(0.5, -275, 0.5, -280), 2)
+local PlayerCol = CreateIndependentWindow("Player", UDim2.new(0.5, 0, 0.5, -280), 3)
+local MiscCol = CreateIndependentWindow("Misc", UDim2.new(0.5, 275, 0.5, -280), 4)
 
-Tabs["Combat"].Button.BackgroundColor3 = Color3.fromRGB(40, 100, 200)
-Tabs["Combat"].Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Tabs["Combat"].Content.Visible = true
-CurrentActiveTab = Tabs["Combat"].Content
-
-local function CreateToggleInTab(parentTab, name, default, callback)
+-- ON/OFF 토글 버튼 크기와 내부 텍스트 크기 확장
+local function CreateToggleInColumn(parentCol, name, default, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 40)
-    btn.BackgroundColor3 = default and Color3.fromRGB(24, 80, 160) or Color3.fromRGB(20, 20, 28)
-    btn.Text = "    " .. name
-    btn.TextColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 180)
+    btn.Size = UDim2.new(1, 0, 0, 42) -- 버튼 높이와 크기 대폭 키움
+    btn.BackgroundColor3 = default and Color3.fromRGB(25, 75, 150) or Color3.fromRGB(18, 24, 38)
+    btn.Text = "  " .. name
+    btn.TextColor3 = default and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 175, 205)
     btn.TextSize = 13
     btn.Font = Enum.Font.GothamMedium
     btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.AutoButtonColor = false
-    btn.Parent = parentTab
+    btn.ZIndex = 2
+    btn.Parent = parentCol
 
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = btn
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = default and Color3.fromRGB(80, 160, 255) or Color3.fromRGB(40, 40, 55)
+    stroke.Color = default and Color3.fromRGB(80, 160, 255) or Color3.fromRGB(35, 50, 75)
     stroke.Transparency = 0.4
     stroke.Parent = btn
 
     local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0, 100, 1, 0)
-    statusLabel.Position = UDim2.new(1, -110, 0, 0)
+    statusLabel.Size = UDim2.new(0, 55, 1, 0)
+    statusLabel.Position = UDim2.new(1, -60, 0, 0)
     statusLabel.BackgroundTransparency = 1
-    statusLabel.Text = default and "ACTIVE" or "DISABLED"
-    statusLabel.TextColor3 = default and Color3.fromRGB(150, 220, 255) or Color3.fromRGB(100, 100, 120)
+    statusLabel.Text = default and "ON" or "OFF"
+    statusLabel.TextColor3 = default and Color3.fromRGB(150, 220, 255) or Color3.fromRGB(90, 110, 135)
     statusLabel.TextSize = 12
     statusLabel.Font = Enum.Font.GothamBold
     statusLabel.TextXAlignment = Enum.TextXAlignment.Right
+    statusLabel.ZIndex = 3
     statusLabel.Parent = btn
 
     local state = default
-    local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
     btn.MouseButton1Click:Connect(function()
         state = not state
-        statusLabel.Text = state and "ACTIVE" or "DISABLED"
+        statusLabel.Text = state and "ON" or "OFF"
         
-        local targetColor = state and Color3.fromRGB(24, 80, 160) or Color3.fromRGB(20, 20, 28)
-        local targetTextColor = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(160, 160, 180)
-        local targetStatusColor = state and Color3.fromRGB(150, 220, 255) or Color3.fromRGB(100, 100, 120)
-        local targetStrokeColor = state and Color3.fromRGB(80, 160, 255) or Color3.fromRGB(40, 40, 55)
+        local targetColor = state and Color3.fromRGB(25, 75, 150) or Color3.fromRGB(18, 24, 38)
+        local targetTextColor = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 175, 205)
+        local targetStatusColor = state and Color3.fromRGB(150, 220, 255) or Color3.fromRGB(90, 110, 135)
+        local targetStrokeColor = state and Color3.fromRGB(80, 160, 255) or Color3.fromRGB(35, 50, 75)
 
         TweenService:Create(btn, tweenInfo, {BackgroundColor3 = targetColor}):Play()
         TweenService:Create(btn, tweenInfo, {TextColor3 = targetTextColor}):Play()
@@ -318,86 +274,55 @@ local function CreateToggleInTab(parentTab, name, default, callback)
     end)
 end
 
-CreateToggleInTab(CombatTab, "Aimbot (Auto Lock & FOV)", Config.Aimbot, function(v) Config.Aimbot = v end)
-CreateToggleInTab(CombatTab, "Silent Aim (Bullet Curve)", Config.Silent_Aim, function(v) Config.Silent_Aim = v end)
-CreateToggleInTab(CombatTab, "Ragebot (Teleport + Glitch Jitter)", Config.Ragebot, function(v) Config.Ragebot = v end)
-CreateToggleInTab(CombatTab, "Wall Check", Config.Wall_Check, function(v) Config.Wall_Check = v end)
-CreateToggleInTab(CombatTab, "Triggerbot", Config.Triggerbot, function(v) Config.Triggerbot = v end)
+-- 컴포넌트 항목 채우기 (히트박스 기능 제거됨)
+CreateToggleInColumn(CombatCol, "Aimbot", Config.Aimbot, function(v) Config.Aimbot = v end)
+CreateToggleInColumn(CombatCol, "Ragebot", Config.Ragebot, function(v) Config.Ragebot = v end)
+CreateToggleInColumn(CombatCol, "Wall Check", Config.Wall_Check, function(v) Config.Wall_Check = v end)
+CreateToggleInColumn(CombatCol, "Triggerbot", Config.Triggerbot, function(v) Config.Triggerbot = v end)
 
-CreateToggleInTab(VisualTab, "ESP Master", Config.ESP_Master, function(v) Config.ESP_Master = v end)
-CreateToggleInTab(VisualTab, "Skeleton ESP", Config.Skeleton_ESP, function(v) Config.Skeleton_ESP = v end)
-CreateToggleInTab(VisualTab, "Box ESP (2D)", Config.Box_ESP, function(v) Config.Box_ESP = v end)
-CreateToggleInTab(VisualTab, "Health Bar ESP", Config.Health_Bar, function(v) Config.Health_Bar = v end)
-CreateToggleInTab(VisualTab, "Player Info & Distance", Config.Info_Display, function(v) Config.Info_Display = v end)
-CreateToggleInTab(VisualTab, "Tracer Lines", Config.Tracer_Lines, function(v) Config.Tracer_Lines = v end)
-CreateToggleInTab(VisualTab, "Team Filter", Config.Team_Filter, function(v) Config.Team_Filter = v end)
+CreateToggleInColumn(VisualCol, "ESP Master", Config.ESP_Master, function(v) Config.ESP_Master = v end)
+CreateToggleInColumn(VisualCol, "Skeleton ESP", Config.Skeleton_ESP, function(v) Config.Skeleton_ESP = v end)
+CreateToggleInColumn(VisualCol, "Box ESP", Config.Box_ESP, function(v) Config.Box_ESP = v end)
+CreateToggleInColumn(VisualCol, "Health Bar", Config.Health_Bar, function(v) Config.Health_Bar = v end)
+CreateToggleInColumn(VisualCol, "Player Info", Config.Info_Display, function(v) Config.Info_Display = v end)
+CreateToggleInColumn(VisualCol, "Tracer Lines", Config.Tracer_Lines, function(v) Config.Tracer_Lines = v end)
+CreateToggleInColumn(VisualCol, "Team Filter", Config.Team_Filter, function(v) Config.Team_Filter = v end)
+CreateToggleInColumn(VisualCol, "Chams / Highlight", Config.Chams_Enabled, function(v) Config.Chams_Enabled = v end)
 
-CreateToggleInTab(PlayerTab, "Infinite Jump", Config.Infinite_Jump, function(v) Config.Infinite_Jump = v end)
-CreateToggleInTab(PlayerTab, "Fly Mode (Toggle Q)", Config.Fly_Mode, function(v) Config.Fly_Mode = v end)
-CreateToggleInTab(PlayerTab, "Noclip", Config.Noclip, function(v) Config.Noclip = v end)
-CreateToggleInTab(PlayerTab, "Speed Hack", Config.Speed_Hack, function(v) Config.Speed_Hack = v end)
+CreateToggleInColumn(PlayerCol, "Infinite Jump", Config.Infinite_Jump, function(v) Config.Infinite_Jump = v end)
+CreateToggleInColumn(PlayerCol, "Fly Mode (Q)", Config.Fly_Mode, function(v) Config.Fly_Mode = v end)
+CreateToggleInColumn(PlayerCol, "Noclip", Config.Noclip, function(v) Config.Noclip = v end)
+CreateToggleInColumn(PlayerCol, "Speed Hack", Config.Speed_Hack, function(v) Config.Speed_Hack = v end)
 
-CreateToggleInTab(MiscTab, "Fullbright", Config.Fullbright, function(v) Config.Fullbright = v end)
-CreateToggleInTab(MiscTab, "Bunny Hop", Config.Bunny_Hop, function(v) Config.Bunny_Hop = v end)
+CreateToggleInColumn(MiscCol, "Fullbright", Config.Fullbright, function(v) Config.Fullbright = v end)
+CreateToggleInColumn(MiscCol, "Bunny Hop", Config.Bunny_Hop, function(v) Config.Bunny_Hop = v end)
 
-local isMinimized = false
-MinimizeBtn.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    ContainerFrame.Visible = not isMinimized
-    TabBar.Visible = not isMinimized
-    MinimizeBtn.Text = isMinimized and "+" or "-"
-    local targetSize = isMinimized and UDim2.new(0, 620, 0, 48) or UDim2.new(0, 620, 0, 480)
-    TweenService:Create(MainFrame, TweenInfo.new(0.2), {Size = targetSize}):Play()
-end)
-
-local dragging, dragInput, dragStart, startPos
-
-TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-        
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+local function ToggleMenuVisibility()
+    isMenuVisible = not isMenuVisible
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    if isMenuVisible then
+        TweenService:Create(DimBackground, tweenInfo, {BackgroundTransparency = 0.55}):Play()
+        for _, win in ipairs(WindowsList) do win.Visible = true end
+    else
+        TweenService:Create(DimBackground, tweenInfo, {BackgroundTransparency = 1}):Play()
+        for _, win in ipairs(WindowsList) do win.Visible = false end
     end
-end)
+end
 
-TitleBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
+TweenService:Create(DimBackground, TweenInfo.new(0.3), {BackgroundTransparency = 0.55}):Play()
 
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X, 
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )
+ContextActionService:BindAction("BlockShiftLock", function(_, state)
+    if state == Enum.UserInputState.Begin then
+        ToggleMenuVisibility()
     end
-end)
-
-UserInputService.InputBegan:Connect(function(input, gp)
-    if input.KeyCode == Config.Menu_Key then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-end)
+    return Enum.ContextActionResult.Sink
+end, false, Config.Menu_Key)
 
 UserInputService.JumpRequest:Connect(function()
     if Config.Infinite_Jump then
         pcall(function()
-            local char = LocalPlayer.Character
-            if char then
-                local humanoid = char:FindFirstChildOfClass("Humanoid")
-                if humanoid then
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end
+            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
         end)
     end
 end)
@@ -405,7 +330,7 @@ end)
 local ESPConnections = {}
 
 local function GetPlayerColor(player)
-    if Config.Team_Filter and player.Team == LocalPlayer.Team then
+    if Config.Team_Filter and player.Team and LocalPlayer.Team and player.Team == LocalPlayer.Team then
         return Color3.fromRGB(40, 240, 100)
     else
         return Color3.fromRGB(255, 60, 60)
@@ -435,12 +360,13 @@ local SkeletonJoints = {
 }
 
 local function IsPlayerValid(player)
-    if player == LocalPlayer then return false end
+    if not player or player == LocalPlayer then return false end
     local char = player.Character
     if not char then return false end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if not hrp or not humanoid or humanoid.Health <= 0 then return false end
+    local head = char:FindFirstChild("Head")
+    if not hrp or not humanoid or not head or humanoid.Health <= 0 then return false end
     return true
 end
 
@@ -449,7 +375,7 @@ local function CreateESP(player)
 
     local highlight = Instance.new("Highlight")
     highlight.Name = "SecureHighlight"
-    highlight.FillTransparency = 0.90
+    highlight.FillTransparency = 0.95
     highlight.OutlineTransparency = 0.1
     highlight.Parent = ScreenGui
 
@@ -519,10 +445,11 @@ local function CreateESP(player)
             local char = player.Character
             local hrp = char:FindFirstChild("HumanoidRootPart")
             local humanoid = char:FindFirstChildOfClass("Humanoid")
-
             local color = GetPlayerColor(player)
+            
             highlight.Adornee = char
             highlight.OutlineColor = color
+            highlight.FillTransparency = Config.Chams_Enabled and 0.5 or 0.95
 
             local vector, onScreen = cam:WorldToViewportPoint(hrp.Position)
             if onScreen then
@@ -558,7 +485,6 @@ local function CreateESP(player)
                         healthBarLine.Visible = true
                         healthBarLine.From = Vector2.new(topVec.X - boxWidth/2 - 6, topVec.Y + boxHeight)
                         healthBarLine.To = Vector2.new(topVec.X - boxWidth/2 - 6, (topVec.Y + boxHeight) - barHeight)
-                        healthBarLine.Color = Color3.fromRGB(0, 255, 100)
                     else
                         if healthBarBg then healthBarBg.Visible = false end
                         if healthBarLine then healthBarLine.Visible = false end
@@ -585,7 +511,6 @@ local function CreateESP(player)
                         local p1 = char:FindFirstChild(pair[1])
                         local p2 = char:FindFirstChild(pair[2])
                         local line = skeletonLines[i]
-                        
                         if p1 and p2 and line then
                             local v1, s1 = cam:WorldToViewportPoint(p1.Position)
                             local v2, s2 = cam:WorldToViewportPoint(p2.Position)
@@ -615,24 +540,24 @@ local function CreateESP(player)
         end)
     end)
 
-    ESPConnections[player] = {
-        Highlight = highlight, Tracer = tracerLine, InfoText = infoText, Box = boxLine, BarBg = healthBarBg, BarLine = healthBarLine, Skeleton = skeletonLines, Connection = connection
-    }
+    ESPConnections[player] = {Highlight = highlight, Connection = connection, Skeleton = skeletonLines, Tracer = tracerLine, Info = infoText, Box = boxLine, BarBg = healthBarBg, BarLine = healthBarLine}
 end
 
 local function RemoveESP(player)
     if ESPConnections[player] then
         pcall(function()
             if ESPConnections[player].Highlight then ESPConnections[player].Highlight:Destroy() end
+            if ESPConnections[player].Connection then ESPConnections[player].Connection:Disconnect() end
             if ESPConnections[player].Tracer then ESPConnections[player].Tracer:Remove() end
-            if ESPConnections[player].InfoText then ESPConnections[player].InfoText:Remove() end
+            if ESPConnections[player].Info then ESPConnections[player].Info:Remove() end
             if ESPConnections[player].Box then ESPConnections[player].Box:Remove() end
             if ESPConnections[player].BarBg then ESPConnections[player].BarBg:Remove() end
             if ESPConnections[player].BarLine then ESPConnections[player].BarLine:Remove() end
             if ESPConnections[player].Skeleton then
-                for _, l in ipairs(ESPConnections[player].Skeleton) do l:Remove() end
+                for _, line in ipairs(ESPConnections[player].Skeleton) do
+                    line:Remove()
+                end
             end
-            if ESPConnections[player].Connection then ESPConnections[player].Connection:Disconnect() end
         end)
         ESPConnections[player] = nil
     end
@@ -652,76 +577,14 @@ local function GetClosestTargetForAimbot()
     for _, p in ipairs(Players:GetPlayers()) do
         pcall(function()
             if IsPlayerValid(p) then
-                local part = p.Character:FindFirstChild(Config.Hitbox) or p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                local part = p.Character:FindFirstChild(Config.Hitbox) or p.Character:FindFirstChild("Head")
                 if part then
                     if not Config.Team_Filter or p.Team ~= LocalPlayer.Team then
                         local vec, onScreen = cam:WorldToViewportPoint(part.Position)
                         if onScreen then
                             local screenDist = (mousePos - Vector2.new(vec.X, vec.Y)).Magnitude
-                            if screenDist < shortestDist then
-                                if IsVisible(part, p.Character) then
-                                    shortestDist = screenDist
-                                    target = p
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-    return target
-end
-
-local function GetClosestTargetForSilentAim()
-    local target = nil
-    local shortestDist = Config.FOV_Radius
-    local mousePos = Vector2.new(Mouse.X, Mouse.Y)
-    local cam = Workspace.CurrentCamera
-    if not cam then return nil end
-
-    for _, p in ipairs(Players:GetPlayers()) do
-        pcall(function()
-            if IsPlayerValid(p) then
-                local part = p.Character:FindFirstChild(Config.Hitbox) or p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                if part then
-                    if not Config.Team_Filter or p.Team ~= LocalPlayer.Team then
-                        local vec, onScreen = cam:WorldToViewportPoint(part.Position)
-                        if onScreen then
-                            local screenDist = (mousePos - Vector2.new(vec.X, vec.Y)).Magnitude
-                            if screenDist < shortestDist then
-                                if IsVisible(part, p.Character) then
-                                    shortestDist = screenDist
-                                    target = part
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-    return target
-end
-
-local function GetClosestTargetForRagebot()
-    local target = nil
-    local shortestDist = math.huge
-    local myChar = LocalPlayer.Character
-    if not myChar then return nil end
-    local myRoot = myChar:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return nil end
-
-    for _, p in ipairs(Players:GetPlayers()) do
-        pcall(function()
-            if IsPlayerValid(p) then
-                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    if not Config.Team_Filter or p.Team ~= LocalPlayer.Team then
-                        if not Config.Wall_Check or IsVisible(hrp, p.Character) then
-                            local dist = (myRoot.Position - hrp.Position).Magnitude
-                            if dist < shortestDist then
-                                shortestDist = dist
+                            if screenDist < shortestDist and IsVisible(part, p.Character) then
+                                shortestDist = screenDist
                                 target = p
                             end
                         end
@@ -734,40 +597,8 @@ local function GetClosestTargetForRagebot()
 end
 
 UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.Q then
+    if not gp and input.KeyCode == Enum.KeyCode.Q then
         Config.Fly_Mode = not Config.Fly_Mode
-    end
-end)
-
-pcall(function()
-    if hookmetamethod then
-        local oldNamecall
-        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
-            if Config.Silent_Aim and not checkcaller() then
-                if method == "FindPartOnRayWithIgnoreList" or method == "FindPartOnRay" or method == "Raycast" then
-                    local targetPart = GetClosestTargetForSilentAim()
-                    if targetPart and Workspace.CurrentCamera then
-                        local origin = args[1]
-                        if typeof(origin) == "Ray" then
-                            origin = origin.Origin
-                        end
-                        if typeof(origin) == "Vector3" then
-                            local newDir = (targetPart.Position - origin).Unit * 1000
-                            if method == "Raycast" then
-                                args[2] = newDir
-                            else
-                                args[1] = Ray.new(origin, newDir)
-                            end
-                            return oldNamecall(self, unpack(args))
-                        end
-                    end
-                end
-            end
-            return oldNamecall(self, ...)
-        end)
     end
 end)
 
@@ -777,9 +608,9 @@ RunService.RenderStepped:Connect(function()
         if not cam then return end
 
         if FOVCircle then
-            if Config.Aimbot or Config.Silent_Aim then
+            if Config.Aimbot and isMenuVisible then
                 FOVCircle.Visible = true
-                FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+                FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 42)
                 FOVCircle.Radius = Config.FOV_Radius
             else
                 FOVCircle.Visible = false
@@ -789,7 +620,7 @@ RunService.RenderStepped:Connect(function()
         if Config.Aimbot then
             local target = GetClosestTargetForAimbot()
             if target and target.Character then
-                local part = target.Character:FindFirstChild(Config.Hitbox) or target.Character:FindFirstChild("Head") or target.Character:FindFirstChild("HumanoidRootPart")
+                local part = target.Character:FindFirstChild(Config.Hitbox) or target.Character:FindFirstChild("Head")
                 if part then
                     local targetCF = CFrame.new(cam.CFrame.Position, part.Position)
                     cam.CFrame = cam.CFrame:Lerp(targetCF, 1 / Config.Aimbot_Smooth)
@@ -797,38 +628,43 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        if Config.Triggerbot and not Config.Ragebot then
-            local target = GetClosestTargetForAimbot()
-            if target and target.Character then
-                local part = target.Character:FindFirstChild(Config.Hitbox) or target.Character:FindFirstChild("Head")
-                if part then
-                    local vec, onScreen = cam:WorldToViewportPoint(part.Position)
-                    if onScreen then
-                        local mousePos = Vector2.new(Mouse.X, Mouse.Y)
-                        if (mousePos - Vector2.new(vec.X, vec.Y)).Magnitude < 35 then
-                            pcall(function() mouse1click() end)
+        if Config.Ragebot then
+            local myChar = LocalPlayer.Character
+            local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+            if myRoot then
+                local closestPlayer = nil
+                local shortestDist = math.huge
+
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if IsPlayerValid(p) and (not Config.Team_Filter or p.Team ~= LocalPlayer.Team) then
+                        local tHrp = p.Character:FindFirstChild("HumanoidRootPart")
+                        if tHrp then
+                            local dist = (myRoot.Position - tHrp.Position).Magnitude
+                            if dist < shortestDist then
+                                shortestDist = dist
+                                closestPlayer = p
+                            end
                         end
+                    end
+                end
+
+                if closestPlayer and closestPlayer.Character then
+                    local tHrp = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if tHrp then
+                        myRoot.CFrame = tHrp.CFrame + Vector3.new(math.random(-1, 1), 3, math.random(-1, 1))
+                        myRoot.Velocity = Vector3.new(0, 0, 0)
                     end
                 end
             end
         end
 
-        if Config.Ragebot then
-            local target = GetClosestTargetForRagebot()
-            local char = LocalPlayer.Character
-            if target and target.Character and char then
-                local hrp = char:FindFirstChild("HumanoidRootPart")
-                local targetHrp = target.Character:FindFirstChild("HumanoidRootPart")
-                
-                if hrp and targetHrp then
-                    local jitterX = math.random(-30, 30) / 10
-                    local jitterY = math.random(-20, 20) / 10
-                    local jitterZ = math.random(-30, 30) / 10
-                    
-                    hrp.CFrame = targetHrp.CFrame + Vector3.new(jitterX, 10 + jitterY, jitterZ)
-                    hrp.Velocity = Vector3.new(0, 0, 0)
-
-                    if Config.Triggerbot then
+        if Config.Triggerbot then
+            local target = GetClosestTargetForAimbot()
+            if target and target.Character then
+                local part = target.Character:FindFirstChild(Config.Hitbox) or target.Character:FindFirstChild("Head")
+                if part then
+                    local vec, onScreen = cam:WorldToViewportPoint(part.Position)
+                    if onScreen and (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(vec.X, vec.Y)).Magnitude < 30 then
                         pcall(function() mouse1click() end)
                     end
                 end
@@ -838,61 +674,50 @@ RunService.RenderStepped:Connect(function()
         if Config.Fullbright then
             Lighting.Brightness = 3
             Lighting.ClockTime = 12
-            Lighting.FogEnd = 999999
             Lighting.GlobalShadows = false
             Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-            Lighting.Ambient = Color3.fromRGB(255, 255, 255)
         end
 
         local char = LocalPlayer.Character
         if char then
             local humanoid = char:FindFirstChildOfClass("Humanoid")
             local hrp = char:FindFirstChild("HumanoidRootPart")
-            
+
             if humanoid then
                 if Config.Speed_Hack then humanoid.WalkSpeed = Config.Speed_Val else humanoid.WalkSpeed = 16 end
-                
                 if Config.Bunny_Hop and humanoid.FloorMaterial ~= Enum.Material.Air then
                     humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
                 end
             end
 
             if Config.Noclip then
-                pcall(function()
-                    for _, part in ipairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = false
-                        end
+                for _, part in ipairs(char:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
                     end
-                end)
+                end
             end
 
             if Config.Fly_Mode then
                 if hrp and not hrp:FindFirstChild("SecureFlyVel") then
-                    local bv = Instance.new("BodyVelocity")
+                    local bv = Instance.new("BodyVelocity", hrp)
                     bv.Name = "SecureFlyVel"
                     bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                    bv.Velocity = Vector3.new(0, 0, 0)
-                    bv.Parent = hrp
-                    local bg = Instance.new("BodyGyro")
+                    local bg = Instance.new("BodyGyro", hrp)
                     bg.Name = "SecureFlyGyro"
                     bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-                    bg.CFrame = hrp.CFrame
-                    bg.Parent = hrp
                 elseif hrp then
                     local bv = hrp:FindFirstChild("SecureFlyVel")
                     local bg = hrp:FindFirstChild("SecureFlyGyro")
                     if bv and bg then
                         local camCF = cam.CFrame
                         local moveDir = Vector3.new(0, 0, 0)
-                        
                         if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camCF.LookVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCF.LookVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCF.RightVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCF.RightVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
                         if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0, 1, 0) end
-
                         bv.Velocity = moveDir * Config.Fly_Speed
                         bg.CFrame = camCF
                     end
