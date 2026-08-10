@@ -1,10 +1,7 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
-local Lighting = game:GetService("Lighting")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -71,15 +68,12 @@ end
 
 local function CreateDrawing(drawingType, properties)
     local drawing = Drawing.new(drawingType)
-    for prop, val in pairs(properties) do
-        drawing[prop] = val
-    end
+    for prop, val in pairs(properties) do drawing[prop] = val end
     return drawing
 end
 
 local function InitESPForPlayer(player)
     if player == LocalPlayer then return end
-    
     local espData = {
         Box = CreateDrawing("Square", {Visible = false, Thickness = 1.5, Color = Color3.fromRGB(255, 255, 255), Filled = false}),
         BoxOutline = CreateDrawing("Square", {Visible = false, Thickness = 3, Color = Color3.fromRGB(0, 0, 0), Filled = false}),
@@ -89,11 +83,7 @@ local function InitESPForPlayer(player)
         HealthBar = CreateDrawing("Line", {Visible = false, Thickness = 1.5, Color = Color3.fromRGB(0, 255, 0)}),
         SkeletonLines = {}
     }
-    
-    for i = 1, 6 do
-        table.insert(espData.SkeletonLines, CreateDrawing("Line", {Visible = false, Thickness = 1.5, Color = Color3.fromRGB(255, 255, 255)}))
-    end
-    
+    for i = 1, 6 do table.insert(espData.SkeletonLines, CreateDrawing("Line", {Visible = false, Thickness = 1.5, Color = Color3.fromRGB(255, 255, 255)})) end
     ESP_Drawings[player] = espData
 end
 
@@ -102,11 +92,8 @@ Players.PlayerAdded:Connect(InitESPForPlayer)
 Players.PlayerRemoving:Connect(function(player)
     if ESP_Drawings[player] then
         for _, obj in pairs(ESP_Drawings[player]) do
-            if type(obj) == "table" then
-                for _, line in ipairs(obj) do pcall(function() line:Remove() end) end
-            else
-                pcall(function() obj:Remove() end)
-            end
+            if type(obj) == "table" then for _, line in ipairs(obj) do pcall(function() line:Remove() end) end
+            else pcall(function() obj:Remove() end) end
         end
         ESP_Drawings[player] = nil
     end
@@ -148,12 +135,8 @@ end)
 
 local function IsSameTeam(player)
     if not Config.Team_Filter then return false end
-    if player.Team and LocalPlayer.Team then
-        return player.Team == LocalPlayer.Team
-    end
-    if player.TeamColor and LocalPlayer.TeamColor then
-        return player.TeamColor == LocalPlayer.TeamColor
-    end
+    if player.Team and LocalPlayer.Team then return player.Team == LocalPlayer.Team end
+    if player.TeamColor and LocalPlayer.TeamColor then return player.TeamColor == LocalPlayer.TeamColor end
     return false
 end
 
@@ -161,24 +144,16 @@ local function GetClosestTarget()
     local closestTarget = nil
     local shortestDist = math.huge
     local mousePos = UserInputService:GetMouseLocation()
-    
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and not IsSameTeam(p) then
             local parts = GetCharacterParts(p)
             if parts and parts.Humanoid and parts.Humanoid.Health > 0 and parts.Root then
-                local targetPart = parts.Head
-                if Config.Hitbox == "Torso" and parts.UpperTorso then
-                    targetPart = parts.UpperTorso
-                end
-                
+                local targetPart = (Config.Hitbox == "Torso" and parts.UpperTorso) or parts.Head
                 if targetPart then
                     local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
                     if onScreen then
                         local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                        if dist < shortestDist then
-                            shortestDist = dist
-                            closestTarget = targetPart
-                        end
+                        if dist < shortestDist then shortestDist = dist closestTarget = targetPart end
                     end
                 end
             end
@@ -191,14 +166,11 @@ local function IsVisible(targetPart)
     if not Config.Wall_Check then return true end
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("Head") then return false end
-    
-    local origin = char.Head.Position
     local raycastParams = RaycastParams.new()
     raycastParams.FilterType = RaycastParams.FilterType.Exclude
     raycastParams.FilterDescendantsInstances = {char, targetPart.Parent}
     raycastParams.IgnoreWater = true
-    
-    local result = Workspace:Raycast(origin, targetPart.Position - origin, raycastParams)
+    local result = Workspace:Raycast(char.Head.Position, targetPart.Position - char.Head.Position, raycastParams)
     return result == nil
 end
 
@@ -210,9 +182,7 @@ RunService.RenderStepped:Connect(function(dt)
             LocalPlayer.CameraMinZoomDistance = 10
         end
 
-        if Config.FPS_Opt then
-            pcall(function() if setfpscap then setfpscap(120) end end)
-        end
+        if Config.FPS_Opt then pcall(function() if setfpscap then setfpscap(120) end end) end
 
         local char = LocalPlayer.Character
         if char then
@@ -220,43 +190,27 @@ RunService.RenderStepped:Connect(function(dt)
             local hrp = char:FindFirstChild("HumanoidRootPart")
             local upperTorso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
 
-            if humanoid then
-                if Config.Speed_Hack then 
-                    humanoid.WalkSpeed = tonumber(Config.Speed_Val) or 40 
-                else 
-                    humanoid.WalkSpeed = 16 
-                end
-            end
+            if humanoid then humanoid.WalkSpeed = Config.Speed_Hack and (tonumber(Config.Speed_Val) or 40) or 16 end
 
             if Config.Noclip then
-                for _, part in ipairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then part.CanCollide = false end
-                end
+                for _, part in ipairs(char:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
             end
 
             if Config.Anti_Aim and upperTorso and hrp then
                 local camCF = Camera.CFrame
-                local lookVec = camCF.LookVector
-                local flatLook = Vector3.new(lookVec.X, 0, lookVec.Z).Unit
+                local flatLook = Vector3.new(camCF.LookVector.X, 0, camCF.LookVector.Z).Unit
                 if flatLook.Magnitude > 0 then
-                    local targetAngle = math.atan2(-flatLook.X, -flatLook.Z)
-                    hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, targetAngle, 0)
+                    hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, math.atan2(-flatLook.X, -flatLook.Z), 0)
                     upperTorso.CFrame = upperTorso.CFrame * CFrame.Angles(math.rad(180), 0, 0)
                 end
             end
 
             if Config.Fly_Mode then
                 if hrp and not hrp:FindFirstChild("UnifiedFlyVel") then
-                    local bv = Instance.new("BodyVelocity", hrp)
-                    bv.Name = "UnifiedFlyVel"
-                    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                    
-                    local bg = Instance.new("BodyGyro", hrp)
-                    bg.Name = "UnifiedFlyGyro"
-                    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                    local bv = Instance.new("BodyVelocity", hrp) bv.Name = "UnifiedFlyVel" bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    local bg = Instance.new("BodyGyro", hrp) bg.Name = "UnifiedFlyGyro" bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
                 elseif hrp then
-                    local bv = hrp:FindFirstChild("UnifiedFlyVel")
-                    local bg = hrp:FindFirstChild("UnifiedFlyGyro")
+                    local bv, bg = hrp:FindFirstChild("UnifiedFlyVel"), hrp:FindFirstChild("UnifiedFlyGyro")
                     if bv and bg then
                         local camCF = Camera.CFrame
                         local moveDir = Vector3.new(0, 0, 0)
@@ -264,7 +218,6 @@ RunService.RenderStepped:Connect(function(dt)
                         if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camCF.LookVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCF.RightVector end
                         if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCF.RightVector end
-                        
                         bv.Velocity = moveDir * (tonumber(Config.Fly_Speed) or 80)
                         bg.CFrame = camCF
                     end
@@ -290,16 +243,12 @@ RunService.RenderStepped:Connect(function(dt)
             end
         end
 
-        if Config.Triggerbot and target and IsVisible(target) then
-            pcall(function() mouse1click() end)
-        end
+        if Config.Triggerbot and target and IsVisible(target) then pcall(function() mouse1click() end) end
 
         for player, esp in pairs(ESP_Drawings) do
             local parts = GetCharacterParts(player)
             local showESP = Config.ESP_Master and parts and parts.Root and parts.Humanoid and parts.Humanoid.Health > 0
-            if showESP and IsSameTeam(player) then
-                showESP = false
-            end
+            if showESP and IsSameTeam(player) then showESP = false end
 
             if showESP then
                 local rootPos, rootOnScreen = Camera:WorldToViewportPoint(parts.Root.Position)
@@ -310,32 +259,24 @@ RunService.RenderStepped:Connect(function(dt)
                     local width = height / 2
 
                     if Config.Box_ESP then
-                        esp.BoxOutline.Size = Vector2.new(width, height)
-                        esp.BoxOutline.Position = Vector2.new(rootPos.X - width / 2, rootPos.Y - height / 2)
-                        esp.BoxOutline.Visible = true
-
-                        esp.Box.Size = Vector2.new(width, height)
-                        esp.Box.Position = Vector2.new(rootPos.X - width / 2, rootPos.Y - height / 2)
-                        esp.Box.Visible = true
+                        esp.BoxOutline.Size = Vector2.new(width, height) esp.BoxOutline.Position = Vector2.new(rootPos.X - width / 2, rootPos.Y - height / 2) esp.BoxOutline.Visible = true
+                        esp.Box.Size = Vector2.new(width, height) esp.Box.Position = Vector2.new(rootPos.X - width / 2, rootPos.Y - height / 2) esp.Box.Visible = true
                     else
-                        esp.Box.Visible = false
-                        esp.BoxOutline.Visible = false
+                        esp.Box.Visible = false esp.BoxOutline.Visible = false
                     end
 
                     if Config.Health_Bar then
-                        local healthPercent = parts.Humanoid.Health / parts.Humanoid.MaxHealth
-                        local barHeight = height * healthPercent
+                        local hpPct = parts.Humanoid.Health / parts.Humanoid.MaxHealth
+                        local barH = height * hpPct
                         esp.HealthBarOutline.From = Vector2.new(rootPos.X - width / 2 - 6, rootPos.Y - height / 2)
                         esp.HealthBarOutline.To = Vector2.new(rootPos.X - width / 2 - 6, rootPos.Y + height / 2)
                         esp.HealthBarOutline.Visible = true
-
-                        esp.HealthBar.From = Vector2.new(rootPos.X - width / 2 - 6, rootPos.Y + height / 2 - barHeight)
+                        esp.HealthBar.From = Vector2.new(rootPos.X - width / 2 - 6, rootPos.Y + height / 2 - barH)
                         esp.HealthBar.To = Vector2.new(rootPos.X - width / 2 - 6, rootPos.Y + height / 2)
-                        esp.HealthBar.Color = Color3.fromRGB(255 * (1 - healthPercent), 255 * healthPercent, 0)
+                        esp.HealthBar.Color = Color3.fromRGB(255 * (1 - hpPct), 255 * hpPct, 0)
                         esp.HealthBar.Visible = true
                     else
-                        esp.HealthBar.Visible = false
-                        esp.HealthBarOutline.Visible = false
+                        esp.HealthBar.Visible = false esp.HealthBarOutline.Visible = false
                     end
 
                     if Config.Info_Display then
@@ -356,12 +297,9 @@ RunService.RenderStepped:Connect(function(dt)
 
                     if Config.Skeleton_ESP and parts.Head and parts.UpperTorso and parts.LeftArm and parts.RightArm and parts.LeftLeg and parts.RightLeg then
                         local joints = {
-                            {parts.Head.Position, parts.UpperTorso.Position},
-                            {parts.UpperTorso.Position, parts.LeftArm.Position},
-                            {parts.UpperTorso.Position, parts.RightArm.Position},
-                            {parts.UpperTorso.Position, parts.Root.Position},
-                            {parts.Root.Position, parts.LeftLeg.Position},
-                            {parts.Root.Position, parts.RightLeg.Position}
+                            {parts.Head.Position, parts.UpperTorso.Position}, {parts.UpperTorso.Position, parts.LeftArm.Position},
+                            {parts.UpperTorso.Position, parts.RightArm.Position}, {parts.UpperTorso.Position, parts.Root.Position},
+                            {parts.Root.Position, parts.LeftLeg.Position}, {parts.Root.Position, parts.RightLeg.Position}
                         }
                         for i, joint in ipairs(joints) do
                             local p1, on1 = Camera:WorldToViewportPoint(joint[1])
@@ -379,32 +317,18 @@ RunService.RenderStepped:Connect(function(dt)
                     end
 
                     if Config.Chams_Enabled then
-                        local highlight = player.Character:FindFirstChildOfClass("Highlight")
-                        if not highlight then
-                            highlight = Instance.new("Highlight", player.Character)
-                            highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                        end
+                        local hl = player.Character:FindFirstChildOfClass("Highlight")
+                        if not hl then hl = Instance.new("Highlight", player.Character) hl.FillColor = Color3.fromRGB(255, 0, 0) hl.OutlineColor = Color3.fromRGB(255, 255, 255) end
                     else
-                        local highlight = player.Character:FindFirstChildOfClass("Highlight")
-                        if highlight then highlight:Destroy() end
+                        local hl = player.Character:FindFirstChildOfClass("Highlight")
+                        if hl then hl:Destroy() end
                     end
                 else
-                    esp.Box.Visible = false
-                    esp.BoxOutline.Visible = false
-                    esp.Tracer.Visible = false
-                    esp.Name.Visible = false
-                    esp.HealthBar.Visible = false
-                    esp.HealthBarOutline.Visible = false
+                    esp.Box.Visible = false esp.BoxOutline.Visible = false esp.Tracer.Visible = false esp.Name.Visible = false esp.HealthBar.Visible = false esp.HealthBarOutline.Visible = false
                     for _, line in ipairs(esp.SkeletonLines) do line.Visible = false end
                 end
             else
-                esp.Box.Visible = false
-                esp.BoxOutline.Visible = false
-                esp.Tracer.Visible = false
-                esp.Name.Visible = false
-                esp.HealthBar.Visible = false
-                esp.HealthBarOutline.Visible = false
+                esp.Box.Visible = false esp.BoxOutline.Visible = false esp.Tracer.Visible = false esp.Name.Visible = false esp.HealthBar.Visible = false esp.HealthBarOutline.Visible = false
                 for _, line in ipairs(esp.SkeletonLines) do line.Visible = false end
             end
         end
