@@ -13,7 +13,6 @@ getgenv().SharedConfig = getgenv().SharedConfig or {}
 local Config = getgenv().SharedConfig
 local ESP_Drawings = {}
 
--- FOV Circle Drawing Setup
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Thickness = 1.5
 FOVCircle.NumSides = 64
@@ -153,7 +152,6 @@ end
 
 RunService.RenderStepped:Connect(function(dt)
     pcall(function()
-        -- FOV Circle Update
         if Config.Show_FOV and (Config.Aimbot or Config.Ragebot) then
             FOVCircle.Position = UserInputService:GetMouseLocation()
             FOVCircle.Radius = Config.Aimbot_FOV or 150
@@ -162,14 +160,12 @@ RunService.RenderStepped:Connect(function(dt)
             FOVCircle.Visible = false
         end
 
-        -- Third Person Camera
         if Config.Third_Person then
             LocalPlayer.CameraMode = Enum.CameraMode.Classic
             LocalPlayer.CameraMaxZoomDistance = 25
             LocalPlayer.CameraMinZoomDistance = 10
         end
 
-        -- FPS Unlocker
         if Config.FPS_Opt then
             pcall(function() if setfpscap then setfpscap(120) end end)
         end
@@ -180,12 +176,10 @@ RunService.RenderStepped:Connect(function(dt)
             local hrp = char:FindFirstChild("HumanoidRootPart")
             local upperTorso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
 
-            -- Speed Hack
             if humanoid then 
                 humanoid.WalkSpeed = Config.Speed_Hack and (tonumber(Config.Speed_Val) or 40) or 16 
             end
 
-            -- Noclip Recovery & State
             if Config.Noclip then
                 for _, part in ipairs(char:GetDescendants()) do 
                     if part:IsA("BasePart") then part.CanCollide = false end 
@@ -196,7 +190,6 @@ RunService.RenderStepped:Connect(function(dt)
                 end
             end
 
-            -- Visual Anti-Aim
             if Config.Anti_Aim and upperTorso and hrp then
                 local camCF = Camera.CFrame
                 local flatLook = Vector3.new(camCF.LookVector.X, 0, camCF.LookVector.Z).Unit
@@ -206,7 +199,6 @@ RunService.RenderStepped:Connect(function(dt)
                 end
             end
 
-            -- Flight Mode (Fly)
             if Config.Fly_Mode then
                 if hrp and not hrp:FindFirstChild("UnifiedFlyVel") then
                     local bv = Instance.new("BodyVelocity", hrp) bv.Name = "UnifiedFlyVel" bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -234,21 +226,44 @@ RunService.RenderStepped:Connect(function(dt)
             end
         end
 
-        -- Combat Target & Execution (Aimbot, Ragebot, Triggerbot)
-        local target = GetClosestTarget()
-        if target then
-            if Config.Aimbot then
+        if Config.Aimbot then
+            local target = GetClosestTarget()
+            if target then
                 Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), 1 / math.clamp(Config.Aimbot_Smooth, 1, 10))
-            elseif Config.Ragebot then
-                Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
             end
+        end
 
-            if Config.Triggerbot then
+        if Config.Ragebot then
+            local closestTarget = nil
+            local shortestDist = math.huge
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and not IsSameTeam(p) then
+                    local parts = GetCharacterParts(p)
+                    if parts and parts.Humanoid and parts.Humanoid.Health > 0 and parts.Root then
+                        local targetPart = (Config.Hitbox == "Torso" and parts.UpperTorso) or parts.Head
+                        if targetPart then
+                            local dist = (targetPart.Position - Camera.CFrame.Position).Magnitude
+                            if dist < shortestDist and IsVisible(targetPart) then
+                                shortestDist = dist
+                                closestTarget = targetPart
+                            end
+                        end
+                    end
+                end
+            end
+            if closestTarget then
+                local speed = math.clamp(Config.Ragebot_Speed or 5, 1, 20)
+                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, closestTarget.Position), speed / 20)
+            end
+        end
+
+        if Config.Triggerbot then
+            local target = GetClosestTarget()
+            if target then
                 pcall(function() mouse1click() end)
             end
         end
 
-        -- ESP Rendering Loop
         for player, esp in pairs(ESP_Drawings) do
             local parts = GetCharacterParts(player)
             local showESP = Config.ESP_Master and parts and parts.Root and parts.Humanoid and parts.Humanoid.Health > 0
