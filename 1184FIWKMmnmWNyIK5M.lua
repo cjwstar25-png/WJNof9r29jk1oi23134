@@ -5,6 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -12,13 +13,45 @@ local Camera = Workspace.CurrentCamera
 getgenv().SharedConfig = getgenv().SharedConfig or {
     Language = "KO",
     MenuKey = Enum.KeyCode.RightShift,
-    ESP_Master = true, Skeleton_ESP = true, Box_ESP = true, Health_Bar = true, Tracer_Lines = true, Info_Display = true, Team_Filter = false, Chams_Enabled = false,
-    Aimbot = false, Aimbot_Smooth = 2, Hitbox = "Head",
-    Ragebot = false, Ragebot_Speed = 5, Wall_Check = false, Triggerbot = false,
-    Infinite_Jump = false, Fly_Mode = false, Fly_Speed = 80, Noclip = false, Speed_Hack = false, Speed_Val = 40,
-    Skybox_Mode = "Off", Custom_Sky_Id = "600835154",
-    Death_Audio = false, Death_Audio_Id = "84615664978587",
-    Anti_Aim = false, Third_Person = false, Device_Spoof = false, Interactive_Cursor = false, FPS_Opt = false
+    
+    ESP_Master = true,
+    Skeleton_ESP = true,
+    Box_ESP = true,      
+    Health_Bar = true,      
+    Tracer_Lines = true,
+    Info_Display = true,
+    Team_Filter = false,
+    Chams_Enabled = false,
+    
+    Aimbot = false,
+    Aimbot_Smooth = 2,
+    Aimbot_FOV = 150,
+    Show_FOV = true,
+    Hitbox = "Head",
+    
+    Ragebot = false,
+    Ragebot_Speed = 5,
+    Wall_Check = false,
+    Triggerbot = false,
+    
+    Infinite_Jump = false,
+    Fly_Mode = false,
+    Fly_Speed = 80,
+    Noclip = false,
+    Speed_Hack = false,
+    Speed_Val = 40,
+    
+    Skybox_Mode = "Off",
+    Custom_Sky_Id = "600835154",
+    
+    Death_Audio = false,
+    Death_Audio_Id = "84615664978587",
+    
+    Anti_Aim = false,
+    Third_Person = false,
+    Device_Spoof = false,
+    Interactive_Cursor = false,
+    FPS_Opt = false
 }
 
 local Config = getgenv().SharedConfig
@@ -33,7 +66,8 @@ local Translations = {
         DeathAudio = "Death Audio", Cursor = "Rainbow Cursor", FPSOpt = "FPS Unlocker", Spoof = "HWID Spoof",
         Properties = "Advanced Properties", SwitchHitbox = "Target Hitbox", ToggleSky = "Toggle Atmosphere",
         SoundID = "Audio Asset ID", SkyID = "Sky Texture ID", LangTitle = "Language Hub / 언어",
-        Smoothness = "Smoothness", RageSpeed = "Rage Speed", FlySpeed = "Flight Speed", SpeedVal = "Speed Value"
+        Smoothness = "Smoothness", RageSpeed = "Rage Speed", FlySpeed = "Flight Speed", SpeedVal = "Speed Value",
+        FOVRadius = "FOV Radius", ShowFOV = "Show FOV Circle"
     },
     KO = {
         Combat = "전투 시스템", Visuals = "시각 및 ESP", Player = "플레이어 강화", Misc = "세계 및 기타",
@@ -44,7 +78,8 @@ local Translations = {
         DeathAudio = "데스 오디오", Cursor = "무지개 커서", FPSOpt = "프레임 최적화", Spoof = "기기 스푸핑",
         Properties = "고급 속성 설정", SwitchHitbox = "타겟 히트박스", ToggleSky = "대기 모드 전환",
         SoundID = "오디오 에셋 ID", SkyID = "스카이 텍스처 ID", LangTitle = "언어 설정 / Language",
-        Smoothness = "부드러움", RageSpeed = "레이지 속도", FlySpeed = "비행 속도", SpeedVal = "이동 값"
+        Smoothness = "부드러움", RageSpeed = "레이지 속도", FlySpeed = "비행 속도", SpeedVal = "이동 값",
+        FOVRadius = "FOV 범위", ShowFOV = "FOV 원 표시"
     }
 }
 
@@ -355,8 +390,14 @@ local function AddTextBox(parent, titleKey, configKey)
     end)
 end
 
-AddToggle(WinCombat, "Aimbot", "Aimbot", nil, function(c) AddSlider(c, "Smoothness", "Aimbot_Smooth", 1, 10, 1) end)
-AddToggle(WinCombat, "Ragebot", "Ragebot", nil, function(c) AddSlider(c, "RageSpeed", "Ragebot_Speed", 1, 20, 1) end)
+AddToggle(WinCombat, "Aimbot", "Aimbot", nil, function(c) 
+    AddSlider(c, "Smoothness", "Aimbot_Smooth", 1, 10, 1)
+    AddSlider(c, "FOVRadius", "Aimbot_FOV", 50, 500, 10)
+    AddToggle(c, "ShowFOV", "Show_FOV")
+end)
+AddToggle(WinCombat, "Ragebot", "Ragebot", nil, function(c) 
+    AddSlider(c, "RageSpeed", "Ragebot_Speed", 1, 20, 1) 
+end)
 AddToggle(WinCombat, "WallCheck", "Wall_Check")
 AddToggle(WinCombat, "Triggerbot", "Triggerbot")
 AddToggle(WinCombat, "AntiAim", "Anti_Aim")
@@ -371,9 +412,13 @@ AddToggle(WinVisuals, "TeamFilter", "Team_Filter")
 AddToggle(WinVisuals, "Chams", "Chams_Enabled")
 
 AddToggle(WinPlayer, "InfJump", "Infinite_Jump")
-AddToggle(WinPlayer, "FlyMode", "Fly_Mode", nil, function(c) AddSlider(c, "FlySpeed", "Fly_Speed", 10, 200, 5) end)
+AddToggle(WinPlayer, "FlyMode", "Fly_Mode", nil, function(c) 
+    AddSlider(c, "FlySpeed", "Fly_Speed", 10, 200, 5) 
+end)
 AddToggle(WinPlayer, "Noclip", "Noclip")
-AddToggle(WinPlayer, "SpeedHack", "Speed_Hack", nil, function(c) AddSlider(c, "SpeedVal", "Speed_Val", 16, 150, 5) end)
+AddToggle(WinPlayer, "SpeedHack", "Speed_Hack", nil, function(c) 
+    AddSlider(c, "SpeedVal", "Speed_Val", 16, 150, 5) 
+end)
 AddToggle(WinPlayer, "Forced3P", "Third_Person")
 
 AddToggle(WinMisc, "SkyChanger", "Skybox_Mode", function(state)
