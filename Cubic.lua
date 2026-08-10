@@ -4,54 +4,22 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
-getgenv().SharedConfig = getgenv().SharedConfig or {
-    Language = "KO",
-    MenuKey = Enum.KeyCode.RightShift,
-    
-    ESP_Master = true,
-    Skeleton_ESP = true,
-    Box_ESP = true,      
-    Health_Bar = true,      
-    Tracer_Lines = true,
-    Info_Display = true,
-    Team_Filter = false,
-    Chams_Enabled = false,
-    
-    Aimbot = false,
-    Aimbot_Smooth = 2,
-    Hitbox = "Head",
-    
-    Ragebot = false,
-    Ragebot_Speed = 5,
-    Wall_Check = false,
-    Triggerbot = false,
-    
-    Infinite_Jump = false,
-    Fly_Mode = false,
-    Fly_Speed = 80,
-    Noclip = false,
-    Speed_Hack = false,
-    Speed_Val = 40,
-    
-    Skybox_Mode = "Off",
-    Custom_Sky_Id = "600835154",
-    
-    Death_Audio = false,
-    Death_Audio_Id = "84615664978587",
-    
-    Anti_Aim = false,
-    Third_Person = false,
-    Device_Spoof = false,
-    Interactive_Cursor = false,
-    FPS_Opt = false
-}
-
+getgenv().SharedConfig = getgenv().SharedConfig or {}
 local Config = getgenv().SharedConfig
 local ESP_Drawings = {}
+
+-- FOV Circle Drawing Setup
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 1.5
+FOVCircle.NumSides = 64
+FOVCircle.Filled = false
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Visible = false
 
 local function GetCharacterParts(player)
     local char = player.Character
@@ -142,28 +110,6 @@ local function IsSameTeam(player)
     return false
 end
 
-local function GetClosestTarget()
-    local closestTarget = nil
-    local shortestDist = math.huge
-    local mousePos = UserInputService:GetMouseLocation()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and not IsSameTeam(p) then
-            local parts = GetCharacterParts(p)
-            if parts and parts.Humanoid and parts.Humanoid.Health > 0 and parts.Root then
-                local targetPart = (Config.Hitbox == "Torso" and parts.UpperTorso) or parts.Head
-                if targetPart then
-                    local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
-                    if onScreen then
-                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                        if dist < shortestDist then shortestDist = dist closestTarget = targetPart end
-                    end
-                end
-            end
-        end
-    end
-    return closestTarget
-end
-
 local function IsVisible(targetPart)
     if not Config.Wall_Check then return true end
     local char = LocalPlayer.Character
@@ -176,15 +122,57 @@ local function IsVisible(targetPart)
     return result == nil
 end
 
+local function GetClosestTarget()
+    local closestTarget = nil
+    local shortestDist = math.huge
+    local mousePos = UserInputService:GetMouseLocation()
+    local maxFOV = Config.Aimbot_FOV or 150
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and not IsSameTeam(p) then
+            local parts = GetCharacterParts(p)
+            if parts and parts.Humanoid and parts.Humanoid.Health > 0 and parts.Root then
+                local targetPart = (Config.Hitbox == "Torso" and parts.UpperTorso) or parts.Head
+                if targetPart then
+                    local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                        if dist < shortestDist and dist <= maxFOV then
+                            if IsVisible(targetPart) then
+                                shortestDist = dist
+                                closestTarget = targetPart
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closestTarget
+end
+
 RunService.RenderStepped:Connect(function(dt)
     pcall(function()
+        -- FOV Circle Update
+        if Config.Show_FOV and (Config.Aimbot or Config.Ragebot) then
+            FOVCircle.Position = UserInputService:GetMouseLocation()
+            FOVCircle.Radius = Config.Aimbot_FOV or 150
+            FOVCircle.Visible = true
+        else
+            FOVCircle.Visible = false
+        end
+
+        -- Third Person Camera
         if Config.Third_Person then
             LocalPlayer.CameraMode = Enum.CameraMode.Classic
             LocalPlayer.CameraMaxZoomDistance = 25
             LocalPlayer.CameraMinZoomDistance = 10
         end
 
-        if Config.FPS_Opt then pcall(function() if setfpscap then setfpscap(120) end end) end
+        -- FPS Unlocker
+        if Config.FPS_Opt then
+            pcall(function() if setfpscap then setfpscap(120) end end)
+        end
 
         local char = LocalPlayer.Character
         if char then
@@ -192,12 +180,23 @@ RunService.RenderStepped:Connect(function(dt)
             local hrp = char:FindFirstChild("HumanoidRootPart")
             local upperTorso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
 
-            if humanoid then humanoid.WalkSpeed = Config.Speed_Hack and (tonumber(Config.Speed_Val) or 40) or 16 end
-
-            if Config.Noclip then
-                for _, part in ipairs(char:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
+            -- Speed Hack
+            if humanoid then 
+                humanoid.WalkSpeed = Config.Speed_Hack and (tonumber(Config.Speed_Val) or 40) or 16 
             end
 
+            -- Noclip Recovery & State
+            if Config.Noclip then
+                for _, part in ipairs(char:GetDescendants()) do 
+                    if part:IsA("BasePart") then part.CanCollide = false end 
+                end
+            else
+                for _, part in ipairs(char:GetDescendants()) do 
+                    if part:IsA("BasePart") then part.CanCollide = true end 
+                end
+            end
+
+            -- Visual Anti-Aim
             if Config.Anti_Aim and upperTorso and hrp then
                 local camCF = Camera.CFrame
                 local flatLook = Vector3.new(camCF.LookVector.X, 0, camCF.LookVector.Z).Unit
@@ -207,6 +206,7 @@ RunService.RenderStepped:Connect(function(dt)
                 end
             end
 
+            -- Flight Mode (Fly)
             if Config.Fly_Mode then
                 if hrp and not hrp:FindFirstChild("UnifiedFlyVel") then
                     local bv = Instance.new("BodyVelocity", hrp) bv.Name = "UnifiedFlyVel" bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -234,19 +234,21 @@ RunService.RenderStepped:Connect(function(dt)
             end
         end
 
+        -- Combat Target & Execution (Aimbot, Ragebot, Triggerbot)
         local target = GetClosestTarget()
-        if target and (Config.Aimbot or Config.Ragebot) then
-            if not Config.Wall_Check or IsVisible(target) then
-                if Config.Aimbot then
-                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), 1 / math.clamp(Config.Aimbot_Smooth, 1, 10))
-                elseif Config.Ragebot then
-                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
-                end
+        if target then
+            if Config.Aimbot then
+                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), 1 / math.clamp(Config.Aimbot_Smooth, 1, 10))
+            elseif Config.Ragebot then
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
+            end
+
+            if Config.Triggerbot then
+                pcall(function() mouse1click() end)
             end
         end
 
-        if Config.Triggerbot and target and IsVisible(target) then pcall(function() mouse1click() end) end
-
+        -- ESP Rendering Loop
         for player, esp in pairs(ESP_Drawings) do
             local parts = GetCharacterParts(player)
             local showESP = Config.ESP_Master and parts and parts.Root and parts.Humanoid and parts.Humanoid.Health > 0
