@@ -1,5 +1,3 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
-
 --!nocheck
 
 -- ========== UI 중복 방지 ==========
@@ -1149,3 +1147,6 @@ RunService.RenderStepped:Connect(function()
         end)
     end
 end)
+
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
