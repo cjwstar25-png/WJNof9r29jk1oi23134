@@ -2,8 +2,9 @@
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-pngWJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
+--!nocheck
 -- ============================================================
--- CONFIG 자체 초기화 (UI 코드와 독립적으로 실행 가능)
+-- CONFIG 자체 초기화
 -- ============================================================
 if not getgenv().SharedConfig then
     getgenv().SharedConfig = {
@@ -47,29 +48,8 @@ end
 local Config = getgenv().SharedConfig
 
 -- ============================================================
--- 여기서부터 본격적인 기능 코드 시작
+-- 서비스 가져오기 (안전하게)
 -- ============================================================
-
--- ============================================================
--- 디버그: Config 상태 확인
--- ============================================================
-print("[Cubic] Config 초기화 시작")
-print("[Cubic] getgenv() 존재:", getgenv() ~= nil)
-print("[Cubic] SharedConfig 존재:", getgenv().SharedConfig ~= nil)
-
-if getgenv().SharedConfig then
-    print("[Cubic] Config.ESP_Master:", getgenv().SharedConfig.ESP_Master)
-    print("[Cubic] Config.Aimbot:", getgenv().SharedConfig.Aimbot)
-    print("[Cubic] Config.Ragebot:", getgenv().SharedConfig.Ragebot)
-    print("[Cubic] Config.Fly_Mode:", getgenv().SharedConfig.Fly_Mode)
-else
-    print("[Cubic] SharedConfig가 nil입니다! UI 코드가 먼저 실행되었는지 확인하세요.")
-end
-
-print("[Cubic] LocalPlayer 존재:", Players.LocalPlayer ~= nil)
-print("[Cubic] Character 존재:", Players.LocalPlayer.Character ~= nil)
-print("[Cubic] Humanoid 존재:", Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid") ~= nil)
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -77,81 +57,35 @@ local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local CoreGui = game:GetService("CoreGui")
 local GuiService = game:GetService("GuiService")
+
+-- LocalPlayer를 안전하게 가져오기
 local LocalPlayer = Players.LocalPlayer
 
--- Config 안전 초기화 (getgenv()가 nil일 경우 대비)
-local function safeGetConfig()
-    local env = getgenv()
-    if not env then
-        env = {}
-        setgenv(env)
-    end
-    if not env.SharedConfig then
-        env.SharedConfig = {
-            Language = "EN",
-            MenuKey = Enum.KeyCode.RightShift,
-            ESP_Master = false,
-            Skeleton_ESP = false,
-            Box_ESP = false,
-            Health_Bar = false,
-            Tracer_Lines = false,
-            Info_Display = false,
-            Team_Filter = false,
-            Chams_Enabled = false,
-            Aimbot = false,
-            Aimbot_Smooth = 2,
-            Aimbot_FOV = 150,
-            Show_FOV = true,
-            Hitbox = "Head",
-            Ragebot = false,
-            Ragebot_Speed = 5,
-            Wall_Check = false,
-            Triggerbot = false,
-            Infinite_Jump = false,
-            Fly_Mode = false,
-            Fly_Speed = 80,
-            Noclip = false,
-            Speed_Hack = false,
-            Speed_Val = 40,
-            Skybox_Mode = false,
-            Custom_Sky_Id = "600835154",
-            Death_Audio = false,
-            Death_Audio_Id = "84615664978587",
-            Anti_Aim = false,
-            Third_Person = false,
-            Device_Spoof = false,
-            Interactive_Cursor = false,
-            FPS_Opt = false,
-        }
-    end
-    return env.SharedConfig
-end
-
-local Config = safeGetConfig()
-if type(Config) ~= "table" then
-    error("Config is not a table! Check getgenv().")
-end
-
-local Character = LocalPlayer.Character
-local Humanoid = Character and Character:FindFirstChild("Humanoid")
-
+-- ============================================================
+-- 헬퍼 함수
+-- ============================================================
 local function GetCharacter(player)
-    return player and player.Character or nil
+    if not player then return nil end
+    return player.Character
 end
 
 local function GetHumanoid(player)
     local char = GetCharacter(player)
-    return char and char:FindFirstChild("Humanoid")
+    if not char then return nil end
+    return char:FindFirstChild("Humanoid")
 end
 
 local function IsAlive(player)
     local humanoid = GetHumanoid(player)
-    return humanoid and humanoid.Health > 0
+    if not humanoid then return false end
+    return humanoid.Health > 0
 end
 
 local function GetMyRoot()
+    if not LocalPlayer then return nil end
     local char = LocalPlayer.Character
     if not char then return nil end
+    if not char.Parent then return nil end
     return char:FindFirstChild("HumanoidRootPart")
 end
 
@@ -181,10 +115,12 @@ local function GetClosestPlayer()
     return closestPlayer
 end
 
-local Aimbot = {Enabled = false, Target = nil, CurrentTarget = nil}
-
+-- ============================================================
+-- AIMBOT
+-- ============================================================
 local function GetClosestPlayerToMouse()
     if not Config.Aimbot then return nil end
+    if not LocalPlayer then return nil end
     local mouse = LocalPlayer:GetMouse()
     if not mouse then return nil end
 
@@ -202,7 +138,10 @@ local function GetClosestPlayerToMouse()
         local head = char:FindFirstChild("Head")
         if not head then continue end
 
-        local screenPos, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+        local camera = Workspace.CurrentCamera
+        if not camera then continue end
+
+        local screenPos, onScreen = camera:WorldToViewportPoint(head.Position)
         if not onScreen then continue end
 
         local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
@@ -227,6 +166,8 @@ end
 
 local function PerformAimbot()
     if not Config.Aimbot then return end
+    if type(mousemoverel) ~= "function" then return end
+
     local targetData = GetClosestPlayerToMouse()
     if not targetData then return end
 
@@ -242,14 +183,17 @@ local function PerformAimbot()
 
     if smoothness > 1 then
         local newPos = currentPos:Lerp(targetPos, smoothFactor)
-        mousemoverel(newPos.X - currentPos.X, newPos.Y - currentPos.Y)
+        pcall(function() mousemoverel(newPos.X - currentPos.X, newPos.Y - currentPos.Y) end)
     else
-        mousemoverel(targetPos.X - currentPos.X, targetPos.Y - currentPos.Y)
+        pcall(function() mousemoverel(targetPos.X - currentPos.X, targetPos.Y - currentPos.Y) end)
     end
-    Aimbot.CurrentTarget = targetData.Player
 end
 
+-- ============================================================
+-- FOV CIRCLE
+-- ============================================================
 local FOVCircle = nil
+
 local function CreateFOVCircle()
     if FOVCircle then FOVCircle:Destroy(); FOVCircle = nil end
     if not Config.Show_FOV or not Config.Aimbot then return end
@@ -279,6 +223,9 @@ local function UpdateFOVCircle()
     if Config.Show_FOV and Config.Aimbot then CreateFOVCircle() end
 end
 
+-- ============================================================
+-- RAGEBOT
+-- ============================================================
 local Ragebot = {
     Enabled = false,
     Target = nil,
@@ -335,7 +282,9 @@ local function ToggleRagebot(state)
     end
 end
 
-local Triggerbot = {Enabled = false}
+-- ============================================================
+-- TRIGGERBOT
+-- ============================================================
 local function PerformTriggerbot()
     if not Config.Triggerbot then return end
     local mouse = LocalPlayer:GetMouse()
@@ -349,11 +298,14 @@ local function PerformTriggerbot()
     if tool then
         local fireEvent = tool:FindFirstChild("FireEvent") or tool:FindFirstChild("RemoteEvent")
         if fireEvent and fireEvent:IsA("RemoteEvent") then
-            fireEvent:FireServer()
+            pcall(function() fireEvent:FireServer() end)
         end
     end
 end
 
+-- ============================================================
+-- ESP
+-- ============================================================
 local ESP = {Enabled = false, Objects = {}}
 
 local function CreateESP(player)
@@ -361,7 +313,7 @@ local function CreateESP(player)
     local char = GetCharacter(player)
     if not char then return end
     if ESP.Objects[player] then
-        ESP.Objects[player]:Destroy()
+        pcall(function() ESP.Objects[player]:Destroy() end)
         ESP.Objects[player] = nil
     end
 
@@ -382,6 +334,7 @@ local function CreateESP(player)
 
     if Config.Skeleton_ESP then
         local function AddLine(part1, part2, color)
+            if not part1 or not part2 then return end
             local line = Instance.new("LineHandleAdornment")
             line.Width = 1
             line.Color3 = color
@@ -452,8 +405,11 @@ local function CreateESP(player)
         if rootPart then
             RunService.Heartbeat:Connect(function()
                 if rootPart and rootPart.Parent then
-                    local camPos = Workspace.CurrentCamera.CFrame.Position
-                    tracer.Points = {camPos, rootPart.Position}
+                    local camera = Workspace.CurrentCamera
+                    if camera then
+                        local camPos = camera.CFrame.Position
+                        tracer.Points = {camPos, rootPart.Position}
+                    end
                 end
             end)
         end
@@ -511,32 +467,17 @@ local function UpdateESP()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and IsAlive(player) then
             if not Config.Team_Filter or player.Team ~= LocalPlayer.Team then
-                CreateESP(player)
+                pcall(function() CreateESP(player) end)
             end
         end
     end
 end
 
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        task.wait(0.5)
-        UpdateESP()
-    end)
-    UpdateESP()
-end)
-Players.PlayerRemoving:Connect(function(player)
-    if ESP.Objects[player] then
-        pcall(function() ESP.Objects[player]:Destroy() end)
-        ESP.Objects[player] = nil
-    end
-end)
-task.spawn(function()
-    while task.wait(1) do
-        if Config.ESP_Master then UpdateESP() end
-    end
-end)
-
+-- ============================================================
+-- CHAMS
+-- ============================================================
 local Chams = {Enabled = false, Objects = {}}
+
 local function UpdateChams()
     for player, obj in pairs(Chams.Objects) do
         pcall(function() obj:Destroy() end)
@@ -561,8 +502,11 @@ local function UpdateChams()
     end
 end
 
-local InfiniteJump = {Enabled = false, OriginalJumpPower = 50}
+-- ============================================================
+-- INFINITE JUMP
+-- ============================================================
 local function SetupInfiniteJump()
+    if not LocalPlayer then return end
     local char = LocalPlayer.Character
     if not char then return end
     local humanoid = char:FindFirstChild("Humanoid")
@@ -582,13 +526,11 @@ local function SetupInfiniteJump()
     end
 end
 
-LocalPlayer.CharacterAdded:Connect(function(char)
-    Character = char
-    Humanoid = char:FindFirstChild("Humanoid")
-    SetupInfiniteJump()
-end)
-
+-- ============================================================
+-- FLY MODE
+-- ============================================================
 local Fly = {Enabled = false, Flying = false, BodyVelocity = nil, BodyGyro = nil}
+
 local function ToggleFly(state)
     Config.Fly_Mode = state
     if state then
@@ -642,7 +584,9 @@ local function ToggleFly(state)
     end
 end
 
-local Noclip = {Enabled = false}
+-- ============================================================
+-- NOCLIP
+-- ============================================================
 local function ToggleNoclip(state)
     Config.Noclip = state
     local char = LocalPlayer.Character
@@ -654,13 +598,13 @@ local function ToggleNoclip(state)
     end
 end
 
-LocalPlayer.CharacterAdded:Connect(function(char)
-    task.wait(0.5)
-    if Config.Noclip then ToggleNoclip(true) end
-end)
-
+-- ============================================================
+-- SPEED HACK
+-- ============================================================
 local SpeedHack = {Enabled = false, OriginalSpeed = 16}
+
 local function SetupSpeedHack()
+    if not LocalPlayer then return end
     local char = LocalPlayer.Character
     if not char then return end
     local humanoid = char:FindFirstChild("Humanoid")
@@ -685,6 +629,9 @@ local function OnSpeedChange()
     end
 end
 
+-- ============================================================
+-- SKYBOX
+-- ============================================================
 local function ToggleSkybox(state)
     Config.Skybox_Mode = state
     if state then
@@ -708,7 +655,9 @@ local function ToggleSkybox(state)
     end
 end
 
-local DeathAudio = {Enabled = false}
+-- ============================================================
+-- DEATH AUDIO
+-- ============================================================
 local function PlayDeathAudio()
     if not Config.Death_Audio then return end
     local id = Config.Death_Audio_Id or "84615664978587"
@@ -721,13 +670,11 @@ local function PlayDeathAudio()
     sound:Destroy()
 end
 
-LocalPlayer.CharacterAdded:Connect(function(char)
-    char.Humanoid.Died:Connect(function()
-        PlayDeathAudio()
-    end)
-end)
-
+-- ============================================================
+-- RAINBOW CURSOR
+-- ============================================================
 local RainbowCursor = {Enabled = false, Connection = nil, Crosshair = nil, Hue = 0}
+
 local function CreateCrosshair()
     if RainbowCursor.Crosshair then RainbowCursor.Crosshair:Destroy(); RainbowCursor.Crosshair = nil end
 
@@ -807,6 +754,9 @@ local function SetupRainbowCursor()
     end
 end
 
+-- ============================================================
+-- FPS UNLOCKER
+-- ============================================================
 local function SetupFPSUnlocker(state)
     Config.FPS_Opt = state
     pcall(function()
@@ -814,6 +764,9 @@ local function SetupFPSUnlocker(state)
     end)
 end
 
+-- ============================================================
+-- THIRD PERSON
+-- ============================================================
 local function ToggleThirdPerson(state)
     Config.Third_Person = state
     local camera = Workspace.CurrentCamera
@@ -821,12 +774,19 @@ local function ToggleThirdPerson(state)
     camera.CameraType = state and Enum.CameraType.Custom or Enum.CameraType.Default
 end
 
+-- ============================================================
+-- SPOOF
+-- ============================================================
 local function ToggleSpoof(state)
     Config.Device_Spoof = state
     GuiService:SetEmotesVisible(state)
 end
 
+-- ============================================================
+-- ANTI-AIM
+-- ============================================================
 local AntiAim = {Enabled = false, Connection = nil}
+
 local function SetupAntiAim(state)
     Config.Anti_Aim = state
     if state then
@@ -848,7 +808,9 @@ local function SetupAntiAim(state)
     end
 end
 
--- 모든 주요 함수를 pcall로 감싸서 실행
+-- ============================================================
+-- MAIN UPDATE LOOP
+-- ============================================================
 local function UpdateAllFeatures()
     pcall(function()
         if Config.Aimbot then PerformAimbot() end
@@ -866,7 +828,9 @@ end
 
 RunService.Heartbeat:Connect(UpdateAllFeatures)
 
--- Config 변경 감지 (setmetatable은 Config가 테이블일 때만)
+-- ============================================================
+-- CONFIG METATABLE (안전하게)
+-- ============================================================
 if type(Config) == "table" then
     local configMetatable = {
         __index = Config,
@@ -908,12 +872,13 @@ if type(Config) == "table" then
         end
     }
     setmetatable(Config, configMetatable)
-else
-    warn("Config is not a table, skipping metatable setup.")
 end
 
+-- ============================================================
+-- INITIALIZATION
+-- ============================================================
 task.spawn(function()
-    wait(0.5)
+    wait(1)
     pcall(function()
         if Config.Ragebot then ToggleRagebot(true) end
         if Config.Interactive_Cursor then SetupRainbowCursor() end
@@ -932,6 +897,9 @@ task.spawn(function()
     end)
 end)
 
+-- ============================================================
+-- CLEANUP
+-- ============================================================
 local function Cleanup()
     pcall(function()
         if RainbowCursor.Connection then RainbowCursor.Connection:Disconnect() end
