@@ -1,6 +1,5 @@
 --!nocheck
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
 
 
 ----------------------------------------------------------------
@@ -808,4 +807,4 @@ task.spawn(function()
     end
 end)
 
-print("[Cubic UI] 최적화 버전 로드 완료!")
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
