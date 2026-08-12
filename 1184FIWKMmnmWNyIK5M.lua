@@ -1,10 +1,3 @@
---!nocheck
-
-
-
-----------------------------------------------------------------
--- CUBIC ULTIMATE HUB - UI ONLY (최적화)
-----------------------------------------------------------------
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -15,9 +8,6 @@ local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 
-----------------------------------------------------------------
--- CONFIG
-----------------------------------------------------------------
 getgenv().SharedConfig = getgenv().SharedConfig or {
     Language = "EN",
     MenuKey = Enum.KeyCode.RightShift,
@@ -27,6 +17,7 @@ getgenv().SharedConfig = getgenv().SharedConfig or {
     Info_Display = false,
     Team_Filter = false,
     Chams_Enabled = false,
+    Tracert = false,
     Aimbot = false,
     Aimbot_Smooth = 2,
     Aimbot_FOV = 150,
@@ -53,38 +44,32 @@ getgenv().SharedConfig = getgenv().SharedConfig or {
 
 local Config = getgenv().SharedConfig
 
-----------------------------------------------------------------
--- THEME
-----------------------------------------------------------------
 local T = {
-    Bg = Color3.fromRGB(8,7,7),
-    Panel = Color3.fromRGB(18,12,12),
-    Panel2 = Color3.fromRGB(25,14,14),
-    Panel3 = Color3.fromRGB(36,18,18),
-    Header = Color3.fromRGB(220,44,38),
-    HeaderD = Color3.fromRGB(176,29,29),
-    Accent = Color3.fromRGB(238,48,40),
-    AccentB = Color3.fromRGB(255,86,72),
-    Border = Color3.fromRGB(117,37,37),
-    BorderB = Color3.fromRGB(171,47,47),
-    Text = Color3.fromRGB(255,248,248),
-    TextS = Color3.fromRGB(211,187,187),
-    TextM = Color3.fromRGB(149,122,122),
-    Off = Color3.fromRGB(28,16,16),
-    OffH = Color3.fromRGB(43,21,21),
-    OffB = Color3.fromRGB(72,37,37),
+    Bg = Color3.fromRGB(4,7,16),
+    Panel = Color3.fromRGB(7,14,30),
+    Panel2 = Color3.fromRGB(10,20,42),
+    Panel3 = Color3.fromRGB(15,30,60),
+    Header = Color3.fromRGB(24,88,205),
+    HeaderD = Color3.fromRGB(15,48,120),
+    Accent = Color3.fromRGB(30,110,255),
+    AccentB = Color3.fromRGB(70,145,255),
+    Border = Color3.fromRGB(28,68,135),
+    BorderB = Color3.fromRGB(40,118,235),
+    Text = Color3.fromRGB(255,255,255),
+    TextS = Color3.fromRGB(198,216,245),
+    TextM = Color3.fromRGB(125,155,205),
+    Off = Color3.fromRGB(9,18,36),
+    OffH = Color3.fromRGB(16,34,68),
+    OffB = Color3.fromRGB(35,78,145),
     Black = Color3.fromRGB(0,0,0),
 }
 
-----------------------------------------------------------------
--- TRANSLATIONS (압축)
-----------------------------------------------------------------
 local L = {
     EN = {
         Combat="Combat Systems", Visuals="Visuals & ESP", Player="Player Enhancements", Misc="Misc & World",
         Aimbot="Aimbot", Ragebot="Ragebot", Triggerbot="Triggerbot", AntiAim="Visual Anti-Aim",
         ESPMaster="ESP Master", BoxESP="Box ESP", HealthBar="Health Bar", PlayerInfo="Player Info",
-        TeamFilter="Team Filter", Chams="Chams", InfJump="Infinite Jump", FlyMode="Flight Mode",
+        TeamFilter="Team Filter", Chams="Chams", Tracert="Tracert", InfJump="Infinite Jump", FlyMode="Flight Mode",
         Noclip="Noclip", SpeedHack="Speed Hack", Forced3P="Third-Person", SkyChanger="Sky Atmosphere",
         DeathAudio="Death Audio", Cursor="Rainbow Cursor", FPSOpt="FPS Unlocker", Spoof="HWID Spoof",
         Properties="Properties", Language="Language", Keybind="UI Toggle Key", PressToBind="Press a key...",
@@ -95,7 +80,7 @@ local L = {
         Combat="전투 시스템", Visuals="시각 및 ESP", Player="플레이어 강화", Misc="기타 및 월드",
         Aimbot="에임봇", Ragebot="레이지봇", Triggerbot="트리거봇", AntiAim="안티에임",
         ESPMaster="ESP 마스터", BoxESP="박스 ESP", HealthBar="체력 바", PlayerInfo="정보 표시",
-        TeamFilter="팀 필터", Chams="하이라이트", InfJump="무한 점프", FlyMode="비행 모드",
+        TeamFilter="팀 필터", Chams="하이라이트", Tracert="트레이서", InfJump="무한 점프", FlyMode="비행 모드",
         Noclip="노클립", SpeedHack="스피드 핵", Forced3P="강제 3인칭", SkyChanger="스카이 대기효과",
         DeathAudio="데스 오디오", Cursor="무지개 커서", FPSOpt="프레임 최적화", Spoof="기기 스푸핑",
         Properties="속성 설정", Language="언어", Keybind="UI 토글 키", PressToBind="키를 누르세요...",
@@ -106,9 +91,6 @@ local L = {
 
 local function Tr(k) local lang = Config.Language=="KO" and "KO" or "EN" return (L[lang] and L[lang][k]) or L.EN[k] or k end
 
-----------------------------------------------------------------
--- HELPERS
-----------------------------------------------------------------
 local function cr(p,r) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r) c.Parent=p return c end
 local function st(p,c,t,tr) local s=Instance.new("UIStroke") s.Color=c s.Thickness=t s.Transparency=tr or 0 s.Parent=p return s end
 local function tw(i,d,p,s,dir) pcall(function() TweenService:Create(i,TweenInfo.new(d or .18,s or Enum.EasingStyle.Quart,dir or Enum.EasingDirection.Out),p):Play() end) end
@@ -118,9 +100,6 @@ local function pos(i,x,y) i.Position=UDim2.fromOffset(x,y) end
 local function scale(i,x,y) i.Size=UDim2.new(x or 0,y or 0,0,0) end
 local function pscale(i,x,y) i.Position=UDim2.new(x or 0,y or 0,0,0) end
 
-----------------------------------------------------------------
--- SCREEN GUI
-----------------------------------------------------------------
 local SG = make("ScreenGui", CoreGui)
 SG.Name = "CubicUltimateHub"
 SG.ResetOnSpawn = false
@@ -138,7 +117,7 @@ make("Frame", Root).Name = "Dimmer"
 local Dimmer = Root.Dimmer
 Dimmer.Size = UDim2.fromScale(1,1)
 Dimmer.BackgroundColor3 = T.Black
-Dimmer.BackgroundTransparency = .55
+Dimmer.BackgroundTransparency = .35
 Dimmer.BorderSizePixel = 0
 Dimmer.ZIndex = 0
 
@@ -160,9 +139,6 @@ end
 task.defer(updScl)
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.defer(updScl) end)
 
-----------------------------------------------------------------
--- POPUP
-----------------------------------------------------------------
 local Popup = make("Frame", Root)
 Popup.Name = "PropertiesPopup"
 Popup.Size = UDim2.fromOffset(360,330)
@@ -257,9 +233,6 @@ local function OpenPopup(title, builder, mp)
 end
 PC.MouseButton1Click:Connect(ClosePopup)
 
-----------------------------------------------------------------
--- UI COMPONENTS
-----------------------------------------------------------------
 local UIE = {}
 local Windows = {}
 
@@ -291,7 +264,7 @@ local function AddTextBox(parent, tk, ck)
     b.ClearTextOnFocus = false
     b.TextXAlignment = Enum.TextXAlignment.Left
     b.ZIndex = 5101
-    cr(b,9); st(b,T.OffB,1,.05)
+    cr(b,9); st(b,T.OffB,1,0)
 
     b.Focused:Connect(function() tw(b,.12,{BackgroundColor3=T.OffH}) end)
     b.FocusLost:Connect(function() Config[ck]=b.Text; tw(b,.12,{BackgroundColor3=T.Off}) end)
@@ -320,7 +293,7 @@ local function AddSlider(parent, tk, ck, mn, mx, stp)
     track.BackgroundColor3 = T.Off
     track.BorderSizePixel = 0
     track.ZIndex = 5101
-    cr(track,8); st(track,T.OffB,1,.05)
+    cr(track,8); st(track,T.OffB,1,0)
 
     local fill = make("Frame", track)
     fill.Size = UDim2.new(0,0,1,0)
@@ -384,7 +357,7 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     local active = Config[ck] == true
     local btn = make("TextButton", parent)
     btn.Size = UDim2.new(1,0,0,42)
-    btn.BackgroundColor3 = active and Color3.fromRGB(105,27,27) or T.Off
+    btn.BackgroundColor3 = active and Color3.fromRGB(15,70,150) or T.Off
     btn.BorderSizePixel = 0
     btn.Text = "  "..Tr(tk)
     btn.TextColor3 = active and T.Text or T.TextS
@@ -394,7 +367,7 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     btn.AutoButtonColor = false
     btn.ZIndex = 300
     cr(btn,10)
-    local bs = st(btn, active and T.BorderB or T.OffB,1.15,.05)
+    local bs = st(btn, active and T.BorderB or T.OffB,1.15,0)
 
     local status = make("TextLabel", btn)
     status.AnchorPoint = Vector2.new(1,.5)
@@ -418,7 +391,7 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     cr(ind,8)
 
     local function upd()
-        btn.BackgroundColor3 = active and Color3.fromRGB(105,27,27) or T.Off
+        btn.BackgroundColor3 = active and Color3.fromRGB(15,70,150) or T.Off
         btn.TextColor3 = active and T.Text or T.TextS
         bs.Color = active and T.BorderB or T.OffB
         status.Text = active and "ON" or "OFF"
@@ -434,7 +407,7 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     end
 
     btn.MouseButton1Click:Connect(function() setState(not active) end)
-    btn.MouseEnter:Connect(function() tw(btn,.1,{BackgroundColor3=active and Color3.fromRGB(122,31,31) or T.OffH}) end)
+    btn.MouseEnter:Connect(function() tw(btn,.1,{BackgroundColor3=active and Color3.fromRGB(20,92,190) or T.OffH}) end)
     btn.MouseLeave:Connect(upd)
 
     if rcb then
@@ -447,9 +420,6 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     return btn
 end
 
-----------------------------------------------------------------
--- CREATE WINDOW
-----------------------------------------------------------------
 local function CreateWindow(tk, xo)
     local w = make("ScrollingFrame", WL)
     w.Name = tk.."Window"
@@ -507,7 +477,7 @@ local function CreateWindow(tk, xo)
     sub.Size = UDim2.new(1,-42,0,15)
     sub.BackgroundTransparency = 1
     sub.Text = "MODULE CONTROLS"
-    sub.TextColor3 = Color3.fromRGB(255,194,187)
+    sub.TextColor3 = Color3.fromRGB(186,215,255)
     sub.TextSize = 8
     sub.Font = Enum.Font.GothamBold
     sub.TextXAlignment = Enum.TextXAlignment.Left
@@ -559,15 +529,11 @@ local function CreateWindow(tk, xo)
     return w, body
 end
 
-----------------------------------------------------------------
--- BUILD UI
-----------------------------------------------------------------
 local WC, CB = CreateWindow("Combat", -477)
 local WV, VB = CreateWindow("Visuals", -159)
 local WP, PB = CreateWindow("Player", 159)
 local WM, MB = CreateWindow("Misc", 477)
 
--- Combat
 AddToggle(CB, "Aimbot", "Aimbot", nil, function(c)
     AddSlider(c, "Smoothness", "Aimbot_Smooth", 1, 10, 1)
     AddSlider(c, "FOVRadius", "Aimbot_FOV", 50, 500, 10)
@@ -577,15 +543,14 @@ AddToggle(CB, "Ragebot", "Ragebot")
 AddToggle(CB, "Triggerbot", "Triggerbot")
 AddToggle(CB, "AntiAim", "Anti_Aim")
 
--- Visuals
 AddToggle(VB, "ESPMaster", "ESP_Master")
 AddToggle(VB, "BoxESP", "Box_ESP")
 AddToggle(VB, "HealthBar", "Health_Bar")
 AddToggle(VB, "PlayerInfo", "Info_Display")
 AddToggle(VB, "TeamFilter", "Team_Filter")
 AddToggle(VB, "Chams", "Chams_Enabled")
+AddToggle(VB, "Tracert", "Tracert")
 
--- Player
 AddToggle(PB, "InfJump", "Infinite_Jump")
 AddToggle(PB, "FlyMode", "Fly_Mode", nil, function(c)
     AddSlider(c, "FlySpeed", "Fly_Speed", 10, 200, 5)
@@ -596,7 +561,6 @@ AddToggle(PB, "SpeedHack", "Speed_Hack", nil, function(c)
 end)
 AddToggle(PB, "Forced3P", "Third_Person")
 
--- Misc
 AddToggle(MB, "SkyChanger", "Skybox_Mode", function(s)
     if s then
         local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky")
@@ -615,9 +579,6 @@ AddToggle(MB, "Cursor", "Interactive_Cursor")
 AddToggle(MB, "FPSOpt", "FPS_Opt")
 AddToggle(MB, "Spoof", "Device_Spoof")
 
-----------------------------------------------------------------
--- LANGUAGE BAR
-----------------------------------------------------------------
 local LB = make("Frame", Root)
 LB.Name = "LanguageBar"
 LB.AnchorPoint = Vector2.new(.5,0)
@@ -626,7 +587,7 @@ LB.Size = UDim2.fromOffset(220,48)
 LB.BackgroundColor3 = T.Panel2
 LB.BorderSizePixel = 0
 LB.ZIndex = 1000
-cr(LB,12); st(LB,T.Border,1.2,.05)
+cr(LB,12); st(LB,T.Border,1.2,0)
 
 local LL = make("TextLabel", LB)
 LL.Position = UDim2.fromOffset(12,0)
@@ -687,9 +648,6 @@ KOB.MouseButton1Click:Connect(function()
     RefreshUI()
 end)
 
-----------------------------------------------------------------
--- MENU TOGGLE
-----------------------------------------------------------------
 local MenuVisible = true
 local function ToggleMenu()
     MenuVisible = not MenuVisible
@@ -699,9 +657,6 @@ local function ToggleMenu()
     if not MenuVisible then ClosePopup() end
 end
 
-----------------------------------------------------------------
--- MOBILE / PC
-----------------------------------------------------------------
 local IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 local MBtn, KP, KL, KBtn, BM = false
 
@@ -728,7 +683,7 @@ else
     KP.BackgroundColor3 = T.Panel2
     KP.BorderSizePixel = 0
     KP.ZIndex = 3000
-    cr(KP,12); st(KP,T.Border,1.2,.05)
+    cr(KP,12); st(KP,T.Border,1.2,0)
 
     KL = make("TextLabel", KP)
     KL.Position = UDim2.fromOffset(10,7)
@@ -760,9 +715,6 @@ else
     end)
 end
 
-----------------------------------------------------------------
--- RIGHT SHIFT SINK
-----------------------------------------------------------------
 pcall(function() ContextActionService:UnbindAction("CubicUltimateHub_RightShift") end)
 ContextActionService:BindActionAtPriority("CubicUltimateHub_RightShift", function(_, state)
     if state == Enum.UserInputState.Begin then
@@ -771,9 +723,6 @@ ContextActionService:BindActionAtPriority("CubicUltimateHub_RightShift", functio
     return Enum.ContextActionResult.Sink
 end, false, 5000, Enum.KeyCode.RightShift)
 
-----------------------------------------------------------------
--- KEYBOARD INPUT
-----------------------------------------------------------------
 UserInputService.InputBegan:Connect(function(i, p)
     if BM and i.UserInputType == Enum.UserInputType.Keyboard then
         if i.KeyCode ~= Enum.KeyCode.Unknown then
@@ -788,9 +737,6 @@ UserInputService.InputBegan:Connect(function(i, p)
     end
 end)
 
-----------------------------------------------------------------
--- INITIAL STATE
-----------------------------------------------------------------
 Config.Language = "EN"
 ENB.BackgroundColor3 = T.Accent
 KOB.BackgroundColor3 = T.Off
@@ -807,4 +753,11 @@ task.spawn(function()
     end
 end)
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
+task.defer(function()
+    local ok, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
+    end)
+    if not ok then
+        warn("[Cubic Feature] 실행 실패:", err)
+    end
+end)
