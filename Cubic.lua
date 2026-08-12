@@ -1,6 +1,55 @@
+--!nocheck
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-pngWJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
---!nocheck
+-- ============================================================
+-- CONFIG 자체 초기화 (UI 코드와 독립적으로 실행 가능)
+-- ============================================================
+if not getgenv().SharedConfig then
+    getgenv().SharedConfig = {
+        Language = "EN",
+        MenuKey = Enum.KeyCode.RightShift,
+        ESP_Master = true,
+        Skeleton_ESP = true,
+        Box_ESP = true,
+        Health_Bar = true,
+        Tracer_Lines = true,
+        Info_Display = true,
+        Team_Filter = false,
+        Chams_Enabled = false,
+        Aimbot = false,
+        Aimbot_Smooth = 2,
+        Aimbot_FOV = 150,
+        Show_FOV = true,
+        Hitbox = "Head",
+        Ragebot = false,
+        Ragebot_Speed = 5,
+        Wall_Check = false,
+        Triggerbot = false,
+        Infinite_Jump = false,
+        Fly_Mode = false,
+        Fly_Speed = 80,
+        Noclip = false,
+        Speed_Hack = false,
+        Speed_Val = 40,
+        Skybox_Mode = false,
+        Custom_Sky_Id = "600835154",
+        Death_Audio = false,
+        Death_Audio_Id = "84615664978587",
+        Anti_Aim = false,
+        Third_Person = false,
+        Device_Spoof = false,
+        Interactive_Cursor = false,
+        FPS_Opt = false,
+    }
+end
+
+local Config = getgenv().SharedConfig
+
+-- ============================================================
+-- 여기서부터 본격적인 기능 코드 시작
+-- ============================================================
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
