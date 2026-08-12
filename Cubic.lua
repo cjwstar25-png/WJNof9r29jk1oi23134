@@ -1,5 +1,797 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-pngWJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
 --!nocheck
-local a=game:GetService("Players");local b=game:GetService("UserInputService");local c=game:GetService("RunService");local d=game:GetService("Workspace");local e=game:GetService("Lighting");local f=game:GetService("TweenService");local g=game:GetService("CoreGui");local h=game:GetService("GuiService");local i=a.LocalPlayer;local j=i.Character or i.CharacterAdded:Wait();local k=j:WaitForChild("Humanoid");local l=getgenv().SharedConfig;local m=function(n)local o=n and n.Character or nil;return o end;local p=function(n)local o=m(n);if not o then return nil end;return o:FindFirstChild("Humanoid")end;local q=function(n)local o=p(n);if not o then return false end;return o.Health>0 end;local r=function()local s=math.huge;local t=nil;local u=j and j:FindFirstChild("HumanoidRootPart")and j.HumanoidRootPart.Position or Vector3.new(0,0,0);for n,v in pairs(a:GetPlayers())do if v==i then continue end;if not q(v)then continue end;if l.Team_Filter and v.Team==i.Team then continue end;local o=m(v);if not o then continue end;local w=o:FindFirstChild("HumanoidRootPart");if not w then continue end;local x=(w.Position-u).Magnitude;if x<s then s=x;t=v end end;return t end;local y={Enabled=false,Target=nil,CurrentTarget=nil};local z=function()if not l.Aimbot then return nil end;local A=i:GetMouse();if not A then return nil end;local B=l.Aimbot_FOV or 150;local C=B;local D=nil;for n,v in pairs(a:GetPlayers())do if v==i then continue end;if not q(v)then continue end;if l.Team_Filter and v.Team==i.Team then continue end;local o=m(v);if not o then continue end;local E=o:FindFirstChild("Head");if not E then continue end;local F,G=d.CurrentCamera:WorldToViewportPoint(E.Position);if not G then continue end;local H=(Vector2.new(F.X,F.Y)-Vector2.new(A.X,A.Y)).Magnitude;local I;if l.Hitbox=="Head"then I=E elseif l.Hitbox=="Torso"then I=o:FindFirstChild("UpperTorso")or o:FindFirstChild("HumanoidRootPart")else local J={E,o:FindFirstChild("UpperTorso"),o:FindFirstChild("HumanoidRootPart")};I=J[math.random(1,#J)]end;if I and H<C then C=H;D={Player=v,Part=I,ScreenPos=F}end end;return D end;local K=function()if not l.Aimbot then return end;local L=z();if not L then return end;local A=i:GetMouse();if not A then return end;local M=l.Aimbot_Smooth or 2;local N=1/(M+1);local O=L.ScreenPos;local P=Vector2.new(A.X,A.Y);local Q=Vector2.new(O.X,O.Y);if M>1 then local R=P:Lerp(Q,N);mousemoverel(R.X-P.X,R.Y-P.Y)else mousemoverel(Q.X-P.X,Q.Y-P.Y)end;y.CurrentTarget=L.Player end;local S=nil;local T=function()if S then S:Destroy();S=nil end;if not l.Show_FOV or not l.Aimbot then return end;local U=g:FindFirstChild("CubicUltimateHub")or g;S=Instance.new("Frame");S.Name="FOVCircle";S.Size=UDim2.fromOffset(l.Aimbot_FOV*2,l.Aimbot_FOV*2);S.Position=UDim2.new(0.5,-l.Aimbot_FOV,0.5,-l.Aimbot_FOV);S.BackgroundTransparency=1;S.BorderSizePixel=0;S.ZIndex=9999;S.Parent=U;local V=Instance.new("ImageLabel");V.Size=UDim2.fromScale(1,1);V.BackgroundTransparency=1;V.Image="rbxassetid://15314665975";V.ImageColor3=Color3.fromRGB(255,80,80);V.ImageTransparency=0.7;V.ZIndex=10000;V.Parent=S end;local W=function()if S then S:Destroy();S=nil end;if l.Show_FOV and l.Aimbot then T()end;local X={Enabled=false,Target=nil,Offset=Vector3.new(0,10,0),JitterAmount=0.3,Connection=nil};local Y=function()if not l.Ragebot then return end;local Z=r();if not Z then return end;local o=m(Z);if not o then return end;local aa=o:FindFirstChild("HumanoidRootPart");if not aa then return end;local ab=i.Character;if not ab then return end;local ac=ab:FindFirstChild("HumanoidRootPart");if not ac then return end;local ad=aa.Position+X.Offset;local ae=Vector3.new(math.random(-100,100)/100*X.JitterAmount,math.random(-100,100)/100*X.JitterAmount,math.random(-100,100)/100*X.JitterAmount);local af=ad+ae;ac.CFrame=CFrame.new(af);local ag=ab:FindFirstChild("Humanoid");if ag then ag.PlatformStand=true end end;local ah=function(state)l.Ragebot=state;if state then if X.Connection then X.Connection:Disconnect()end;X.Connection=c.Heartbeat:Connect(function()if l.Ragebot then Y()end end)else if X.Connection then X.Connection:Disconnect();X.Connection=nil end;local ab=i.Character;if ab then local ag=ab:FindFirstChild("Humanoid");if ag then ag.PlatformStand=false end end end end;local ai={Enabled=false};local aj=function()if not l.Triggerbot then return end;local A=i:GetMouse();if not A then return end;local L=z();if not L then return end;local ak=j:FindFirstChildOfClass("Tool");if ak then local al=ak:FindFirstChild("FireEvent")or ak:FindFirstChild("RemoteEvent");if al and al:IsA("RemoteEvent")then al:FireServer()end end end;local am={Enabled=false,Objects={}};local an=function(n)if not l.ESP_Master then return end;local o=m(n);if not o then return end;if am.Objects[n]then am.Objects[n]:Destroy();am.Objects[n]=nil end;local ao=Instance.new("Folder");ao.Name="ESP_"..n.Name;ao.Parent=o;if l.Box_ESP then local ap=Instance.new("BoxHandleAdornment");ap.Size=Vector3.new(2.5,5,1);ap.Color3=n.Team==i.Team and Color3.fromRGB(0,255,0)or Color3.fromRGB(255,0,0);ap.Transparency=0.6;ap.ZIndex=10;ap.AlwaysOnTop=true;ap.Adornee=o:FindFirstChild("HumanoidRootPart")or o;ap.Parent=ao end;if l.Skeleton_ESP then local function aq(ar,as,at)local au=Instance.new("LineHandleAdornment");au.Width=1;au.Color3=at;au.Transparency=0.5;au.ZIndex=10;au.AlwaysOnTop=true;au.Points={ar.Position,as.Position};au.Parent=ao;c.Heartbeat:Connect(function()if ar and as and ar.Parent and as.Parent then au.Points={ar.Position,as.Position}end end);return au end;local E=o:FindFirstChild("Head");local av=o:FindFirstChild("UpperTorso")or o:FindFirstChild("HumanoidRootPart");local aw=o:FindFirstChild("LeftUpperArm")or o:FindFirstChild("LeftArm");local ax=o:FindFirstChild("RightUpperArm")or o:FindFirstChild("RightArm");local ay=o:FindFirstChild("LeftUpperLeg")or o:FindFirstChild("LeftLeg");local az=o:FindFirstChild("RightUpperLeg")or o:FindFirstChild("RightLeg");if E and av then aq(E,av,Color3.fromRGB(255,255,255))end;if av and aw then aq(av,aw,Color3.fromRGB(255,255,255))end;if av and ax then aq(av,ax,Color3.fromRGB(255,255,255))end;if av and ay then aq(av,ay,Color3.fromRGB(255,255,255))end;if av and az then aq(av,az,Color3.fromRGB(255,255,255))end end;if l.Health_Bar then local aA=Instance.new("BillboardGui");aA.Size=UDim2.new(0,50,0,8);aA.StudsOffset=Vector3.new(0,3.5,0);aA.Parent=ao;local aB=Instance.new("Frame");aB.Size=UDim2.new(1,0,1,0);aB.BackgroundColor3=Color3.fromRGB(0,0,0);aB.BackgroundTransparency=0.5;aB.Parent=aA;local aC=Instance.new("Frame");aC.Size=UDim2.new(1,0,1,0);aC.BackgroundColor3=Color3.fromRGB(0,255,0);aC.Parent=aB;local ag=p(n);if ag then ag:GetPropertyChangedSignal("Health"):Connect(function()local aD=ag.Health/ag.MaxHealth;aC.Size=UDim2.new(aD,0,1,0);aC.BackgroundColor3=Color3.fromRGB(255*(1-aD),255*aD,0)end)end end;if l.Tracer_Lines then local aE=Instance.new("LineHandleAdornment");aE.Width=1;aE.Color3=Color3.fromRGB(255,0,0);aE.Transparency=0.5;aE.ZIndex=5;aE.AlwaysOnTop=true;aE.Parent=ao;local ac=o:FindFirstChild("HumanoidRootPart");if ac then c.Heartbeat:Connect(function()if ac and ac.Parent then local aF=d.CurrentCamera.CFrame.Position;aE.Points={aF,ac.Position}end end)end end;if l.Info_Display then local aG=Instance.new("BillboardGui");aG.Size=UDim2.new(0,100,0,30);aG.StudsOffset=Vector3.new(0,3.8,0);aG.Parent=ao;local aH=Instance.new("TextLabel");aH.Size=UDim2.new(1,0,1,0);aH.BackgroundTransparency=1;aH.Text=n.Name;aH.TextColor3=Color3.fromRGB(255,255,255);aH.TextSize=12;aH.Font=Enum.Font.GothamBold;aH.TextStrokeTransparency=0.5;aH.Parent=aG;local aI=Instance.new("TextLabel");aI.Size=UDim2.new(1,0,1,0);aI.Position=UDim2.new(0,0,1,0);aI.BackgroundTransparency=1;aI.Text="";aI.TextColor3=Color3.fromRGB(200,200,200);aI.TextSize=10;aI.Font=Enum.Font.Gotham;aI.Parent=aG;local ac=o:FindFirstChild("HumanoidRootPart");if ac then c.Heartbeat:Connect(function()if ac and ac.Parent then local aJ=(ac.Position-(i.Character and i.Character:FindFirstChild("HumanoidRootPart")and i.Character.HumanoidRootPart.Position or Vector3.new(0,0,0))).Magnitude;aI.Text=string.format("%.1f m",aJ)end end)end end;am.Objects[n]=ao end;local aK=function()for n,ao in pairs(am.Objects)do pcall(function()ao:Destroy()end)end;am.Objects={};if not l.ESP_Master then return end;for n,v in pairs(a:GetPlayers())do if v~=i and q(v)then if not l.Team_Filter or v.Team~=i.Team then an(v)end end end end;a.PlayerAdded:Connect(function(n)n.CharacterAdded:Connect(function()task.wait(0.5);aK()end);aK()end);a.PlayerRemoving:Connect(function(n)if am.Objects[n]then pcall(function()am.Objects[n]:Destroy()end);am.Objects[n]=nil end end);task.spawn(function()while task.wait(1)do if l.ESP_Master then aK()end end end);local aL={Enabled=false,Objects={}};local aM=function()for n,ao in pairs(aL.Objects)do pcall(function()ao:Destroy()end)end;aL.Objects={};if not l.Chams_Enabled then return end;for n,v in pairs(a:GetPlayers())do if v~=i and q(v)then local o=m(v);if o then local aN=Instance.new("Highlight");aN.FillColor=Color3.fromRGB(255,0,0);aN.FillTransparency=0.5;aN.OutlineColor=Color3.fromRGB(255,255,255);aN.OutlineTransparency=0.3;aN.Adornee=o;aN.Parent=o;aL.Objects[n]=aN end end end end;local aO={Enabled=false,OriginalJumpPower=50};local aP=function()local ag=i.Character and i.Character:FindFirstChild("Humanoid");if not ag then return end;if l.Infinite_Jump then ag:SetStateEnabled(Enum.HumanoidStateType.Jumping,true);ag:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true);ag.JumpPower=50;local aQ;local function aR()aQ=b.InputBegan:Connect(function(aS,aT)if aT then return end;if aS.UserInputType==Enum.UserInputType.Keyboard and aS.KeyCode==Enum.KeyCode.Space then if l.Infinite_Jump and ag and ag.Parent then ag.Jump=true end end end)end;aR()end end;i.CharacterAdded:Connect(function(aU)j=aU;k=aU:WaitForChild("Humanoid");aP()end);local aV={Enabled=false,Flying=false,BodyVelocity=nil,BodyGyro=nil};local aW=function(aX)l.Fly_Mode=aX;if aX then local aU=i.Character;if not aU then return end;local ac=aU:FindFirstChild("HumanoidRootPart");if not ac then return end;local ag=aU:FindFirstChild("Humanoid");if ag then ag.PlatformStand=true end;aV.BodyVelocity=Instance.new("BodyVelocity");aV.BodyVelocity.MaxForce=Vector3.new(1e9,1e9,1e9);aV.BodyVelocity.Velocity=Vector3.new(0,0,0);aV.BodyVelocity.Parent=ac;aV.BodyGyro=Instance.new("BodyGyro");aV.BodyGyro.MaxTorque=Vector3.new(1e9,1e9,1e9);aV.BodyGyro.CFrame=ac.CFrame;aV.BodyGyro.Parent=ac;aV.Flying=true;task.spawn(function()while aV.Flying and l.Fly_Mode do local aY=l.Fly_Speed or 80;local aZ=Vector3.new();if b:IsKeyDown(Enum.KeyCode.W)then aZ=aZ+d.CurrentCamera.CFrame.LookVector end;if b:IsKeyDown(Enum.KeyCode.S)then aZ=aZ-d.CurrentCamera.CFrame.LookVector end;if b:IsKeyDown(Enum.KeyCode.A)then aZ=aZ-d.CurrentCamera.CFrame.RightVector end;if b:IsKeyDown(Enum.KeyCode.D)then aZ=aZ+d.CurrentCamera.CFrame.RightVector end;if b:IsKeyDown(Enum.KeyCode.Space)then aZ=aZ+Vector3.new(0,1,0)end;if b:IsKeyDown(Enum.KeyCode.LeftShift)then aZ=aZ-Vector3.new(0,1,0)end;if aZ.Magnitude>0 then aZ=aZ.Unit*aY;if aV.BodyVelocity then aV.BodyVelocity.Velocity=aZ end else if aV.BodyVelocity then aV.BodyVelocity.Velocity=Vector3.new(0,0,0)end end;task.wait()end end)else aV.Flying=false;if aV.BodyVelocity then aV.BodyVelocity:Destroy();aV.BodyVelocity=nil end;if aV.BodyGyro then aV.BodyGyro:Destroy();aV.BodyGyro=nil end;local aU=i.Character;if aU then local ag=aU:FindFirstChild("Humanoid");if ag then ag.PlatformStand=false end end end end;local ba={Enabled=false,OriginalCollision=true};local bb=function(aX)l.Noclip=aX;if aX then local aU=i.Character;if aU then for _,bc in pairs(aU:GetDescendants())do if bc:IsA("BasePart")then bc.CanCollide=false end end end else local aU=i.Character;if aU then for _,bc in pairs(aU:GetDescendants())do if bc:IsA("BasePart")then bc.CanCollide=true end end end end end;i.CharacterAdded:Connect(function(aU)task.wait(0.5);if l.Noclip then bb(true)end end);local bd={Enabled=false,OriginalSpeed=16};local be=function()local ag=i.Character and i.Character:FindFirstChild("Humanoid");if not ag then return end;if l.Speed_Hack then bd.OriginalSpeed=ag.WalkSpeed;ag.WalkSpeed=l.Speed_Val or 40 else if bd.OriginalSpeed>0 then ag.WalkSpeed=bd.OriginalSpeed end end end;local bf=function()if l.Speed_Hack then local ag=i.Character and i.Character:FindFirstChild("Humanoid");if ag then ag.WalkSpeed=l.Speed_Val or 40 end end end;local bg=function(aX)l.Skybox_Mode=aX;if aX then local bh=e:FindFirstChildOfClass("Sky");if not bh then bh=Instance.new("Sky");bh.Parent=e end;local bi=l.Custom_Sky_Id or"600835154";local bj="rbxassetid://"..tostring(bi);bh.SkyboxBk=bj;bh.SkyboxDn=bj;bh.SkyboxFt=bj;bh.SkyboxLf=bj;bh.SkyboxRt=bj;bh.SkyboxUp=bj;local bk=e:FindFirstChildOfClass("Atmosphere");if not bk then bk=Instance.new("Atmosphere");bk.Parent=e end;bk.Density=0.3;bk.Offset=0.1;bk.Color=Color3.fromRGB(255,200,150);bk.Decay=Color3.fromRGB(100,80,150)else local bh=e:FindFirstChildOfClass("Sky");if bh then bh:Destroy()end;local bk=e:FindFirstChildOfClass("Atmosphere");if bk then bk:Destroy()end end end;local bl={Enabled=false,Playing=false};local bm=function()if not l.Death_Audio then return end;local bn=l.Death_Audio_Id or"84615664978587";local bo=Instance.new("Sound");bo.SoundId="rbxassetid://"..tostring(bn);bo.Volume=1;bo.Parent=d;bo:Play();task.wait(bo.TimeLength);bo:Destroy()end;i.CharacterAdded:Connect(function(aU)aU.Humanoid.Died:Connect(function()bm()end)end);local bp={Enabled=false,Connection=nil,Crosshair=nil,Hue=0};local bq=function()if bp.Crosshair then bp.Crosshair:Destroy();bp.Crosshair=nil end;local br=Instance.new("ScreenGui");br.Name="RainbowCrosshair";br.ResetOnSpawn=false;br.ZIndexBehavior=Enum.ZIndexBehavior.Global;br.Parent=g;local bs=Instance.new("Frame");bs.Size=UDim2.new(0,40,0,40);bs.Position=UDim2.new(0.5,-20,0.5,-20);bs.BackgroundTransparency=1;bs.ZIndex=9999;bs.Parent=br;local bt=2;local bu=12;local bv=4;local function bw(bx,by,bz)local bA=Instance.new("Frame");bA.Size=bz;bA.Position=by;bA.AnchorPoint=bx;bA.BackgroundColor3=Color3.fromRGB(255,255,255);bA.BackgroundTransparency=0.2;bA.ZIndex=10000;bA.Parent=bs;return bA end;bw(Vector2.new(0.5,1),UDim2.new(0.5,0,0.5,-bv),UDim2.new(0,bt,0,bu));bw(Vector2.new(0.5,0),UDim2.new(0.5,0,0.5,bv),UDim2.new(0,bt,0,bu));bw(Vector2.new(1,0.5),UDim2.new(0.5,-bv,0.5,0),UDim2.new(0,bu,0,bt));bw(Vector2.new(0,0.5),UDim2.new(0.5,bv,0.5,0),UDim2.new(0,bu,0,bt));bp.Crosshair=br;return bs end;local bB=function()if l.Interactive_Cursor then bp.Enabled=true;local bs=bq();if not bs then return end;if bp.Connection then bp.Connection:Disconnect()end;bp.Connection=c.Heartbeat:Connect(function()if not bp.Enabled or not bs.Parent then if bp.Connection then bp.Connection:Disconnect();bp.Connection=nil end;return end;bp.Hue=(bp.Hue+0.01)%1;local bC=Color3.fromHSV(bp.Hue,1,1);for _,bD in ipairs(bs:GetChildren())do if bD:IsA("Frame")then bD.BackgroundColor3=bC;bD.BackgroundTransparency=0.1 end end;bs.Rotation=(bs.Rotation+1.5)%360 end)else bp.Enabled=false;if bp.Connection then bp.Connection:Disconnect();bp.Connection=nil end;if bp.Crosshair then bp.Crosshair:Destroy();bp.Crosshair=nil end end end;local bE=function(aX)l.FPS_Opt=aX;pcall(function()if setfpscap then setfpscap(aX and 120 or 60)end end)end;local bF=function(aX)l.Third_Person=aX;local bG=d.CurrentCamera;if not bG then return end;if aX then bG.CameraType=Enum.CameraType.Custom else bG.CameraType=Enum.CameraType.Default end end;local bH=function(aX)l.Device_Spoof=aX;if aX then h:SetEmotesVisible(true)else h:SetEmotesVisible(false)end end;local bI={Enabled=false,Connection=nil};local bJ=function(aX)l.Anti_Aim=aX;if aX then if bI.Connection then bI.Connection:Disconnect()end;bI.Connection=c.Heartbeat:Connect(function()if not l.Anti_Aim then return end;local aU=i.Character;if not aU then return end;local ac=aU:FindFirstChild("HumanoidRootPart");if not ac then return end;local E=aU:FindFirstChild("Head");if E then E.CFrame=E.CFrame*CFrame.Angles(0,math.rad(180),0)end end)else if bI.Connection then bI.Connection:Disconnect();bI.Connection=nil end end end;local bK=function()if l.Aimbot then K()end;if l.Ragebot then Y()end;if l.Triggerbot then aj()end;if l.Speed_Hack then local ag=i.Character and i.Character:FindFirstChild("Humanoid");if ag then ag.WalkSpeed=l.Speed_Val or 40 end end end;c.Heartbeat:Connect(function()bK()end);local bL={__index=l,__newindex=function(bM,bN,bO)rawset(bM,bN,bO);if bN=="Aimbot"then elseif bN=="Ragebot"then ah(bO)elseif bN=="Fly_Mode"then aW(bO)elseif bN=="Noclip"then bb(bO)elseif bN=="Speed_Hack"then be()elseif bN=="Skybox_Mode"then bg(bO)elseif bN=="Third_Person"then bF(bO)elseif bN=="Device_Spoof"then bH(bO)elseif bN=="Interactive_Cursor"then bB()elseif bN=="FPS_Opt"then bE(bO)elseif bN=="Anti_Aim"then bJ(bO)elseif bN=="ESP_Master"or bN=="Box_ESP"or bN=="Skeleton_ESP"or bN=="Health_Bar"or bN=="Tracer_Lines"or bN=="Info_Display"or bN=="Team_Filter"then aK()elseif bN=="Chams_Enabled"then aM()elseif bN=="Speed_Val"then bf()elseif bN=="Show_FOV"or bN=="Aimbot_FOV"then W()end end};setmetatable(l,bL);task.spawn(function()wait(0.5);if l.Ragebot then ah(true)end;if l.Interactive_Cursor then bB()end;if l.Aimbot then W()end;if l.Fly_Mode then aW(true)end;if l.Noclip then bb(true)end;if l.Speed_Hack then be()end;if l.Skybox_Mode then bg(true)end;if l.Third_Person then bF(true)end;if l.Device_Spoof then bH(true)end;if l.FPS_Opt then bE(true)end;if l.Anti_Aim then bJ(true)end;if l.ESP_Master then aK()end;if l.Chams_Enabled then aM()end;if l.Infinite_Jump then aP()end end);local bP=function()if bp.Connection then bp.Connection:Disconnect()end;if bp.Crosshair then bp.Crosshair:Destroy()end;if X.Connection then X.Connection:Disconnect()end;if S then S:Destroy()end;for n,ao in pairs(am.Objects)do pcall(function()ao:Destroy()end)end;for n,ao in pairs(aL.Objects)do pcall(function()ao:Destroy()end)end end;task.spawn(function()while true do task.wait(1);if not getgenv().SharedConfig then bP();break end end end)
- 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local GuiService = game:GetService("GuiService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local Config = getgenv().SharedConfig
+
+local function GetCharacter(player)
+    return player and player.Character or nil
+end
+
+local function GetHumanoid(player)
+    local char = GetCharacter(player)
+    return char and char:FindFirstChild("Humanoid")
+end
+
+local function IsAlive(player)
+    local humanoid = GetHumanoid(player)
+    return humanoid and humanoid.Health > 0
+end
+
+local function GetClosestPlayer()
+    local closestDist = math.huge
+    local closestPlayer = nil
+    local myPos = Character and Character:FindFirstChild("HumanoidRootPart") and Character.HumanoidRootPart.Position or Vector3.new(0,0,0)
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player == LocalPlayer then continue end
+        if not IsAlive(player) then continue end
+        if Config.Team_Filter and player.Team == LocalPlayer.Team then continue end
+
+        local char = GetCharacter(player)
+        if not char then continue end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then continue end
+
+        local dist = (root.Position - myPos).Magnitude
+        if dist < closestDist then
+            closestDist = dist
+            closestPlayer = player
+        end
+    end
+    return closestPlayer
+end
+
+local Aimbot = {Enabled = false, Target = nil, CurrentTarget = nil}
+
+local function GetClosestPlayerToMouse()
+    if not Config.Aimbot then return nil end
+    local mouse = LocalPlayer:GetMouse()
+    if not mouse then return nil end
+
+    local fovRadius = Config.Aimbot_FOV or 150
+    local bestDistance = fovRadius
+    local bestTarget = nil
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player == LocalPlayer then continue end
+        if not IsAlive(player) then continue end
+        if Config.Team_Filter and player.Team == LocalPlayer.Team then continue end
+
+        local char = GetCharacter(player)
+        if not char then continue end
+        local head = char:FindFirstChild("Head")
+        if not head then continue end
+
+        local screenPos, onScreen = Workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+        if not onScreen then continue end
+
+        local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+
+        local targetPart
+        if Config.Hitbox == "Head" then
+            targetPart = head
+        elseif Config.Hitbox == "Torso" then
+            targetPart = char:FindFirstChild("UpperTorso") or char:FindFirstChild("HumanoidRootPart")
+        else
+            local parts = {head, char:FindFirstChild("UpperTorso"), char:FindFirstChild("HumanoidRootPart")}
+            targetPart = parts[math.random(1, #parts)]
+        end
+
+        if targetPart and distance < bestDistance then
+            bestDistance = distance
+            bestTarget = {Player = player, Part = targetPart, ScreenPos = screenPos}
+        end
+    end
+    return bestTarget
+end
+
+local function PerformAimbot()
+    if not Config.Aimbot then return end
+    local targetData = GetClosestPlayerToMouse()
+    if not targetData then return end
+
+    local mouse = LocalPlayer:GetMouse()
+    if not mouse then return end
+
+    local smoothness = Config.Aimbot_Smooth or 2
+    local smoothFactor = 1 / (smoothness + 1)
+
+    local targetScreenPos = targetData.ScreenPos
+    local currentPos = Vector2.new(mouse.X, mouse.Y)
+    local targetPos = Vector2.new(targetScreenPos.X, targetScreenPos.Y)
+
+    if smoothness > 1 then
+        local newPos = currentPos:Lerp(targetPos, smoothFactor)
+        mousemoverel(newPos.X - currentPos.X, newPos.Y - currentPos.Y)
+    else
+        mousemoverel(targetPos.X - currentPos.X, targetPos.Y - currentPos.Y)
+    end
+    Aimbot.CurrentTarget = targetData.Player
+end
+
+local FOVCircle = nil
+local function CreateFOVCircle()
+    if FOVCircle then FOVCircle:Destroy(); FOVCircle = nil end
+    if not Config.Show_FOV or not Config.Aimbot then return end
+
+    local screenGui = CoreGui:FindFirstChild("CubicUltimateHub") or CoreGui
+    FOVCircle = Instance.new("Frame")
+    FOVCircle.Name = "FOVCircle"
+    FOVCircle.Size = UDim2.fromOffset(Config.Aimbot_FOV * 2, Config.Aimbot_FOV * 2)
+    FOVCircle.Position = UDim2.new(0.5, -Config.Aimbot_FOV, 0.5, -Config.Aimbot_FOV)
+    FOVCircle.BackgroundTransparency = 1
+    FOVCircle.BorderSizePixel = 0
+    FOVCircle.ZIndex = 9999
+    FOVCircle.Parent = screenGui
+
+    local circle = Instance.new("ImageLabel")
+    circle.Size = UDim2.fromScale(1, 1)
+    circle.BackgroundTransparency = 1
+    circle.Image = "rbxassetid://15314665975"
+    circle.ImageColor3 = Color3.fromRGB(255, 80, 80)
+    circle.ImageTransparency = 0.7
+    circle.ZIndex = 10000
+    circle.Parent = FOVCircle
+end
+
+local function UpdateFOVCircle()
+    if FOVCircle then FOVCircle:Destroy(); FOVCircle = nil end
+    if Config.Show_FOV and Config.Aimbot then CreateFOVCircle() end
+end
+
+local Ragebot = {
+    Enabled = false,
+    Target = nil,
+    Offset = Vector3.new(0, 10, 0),
+    JitterAmount = 0.3,
+    Connection = nil,
+}
+
+local function PerformRagebot()
+    if not Config.Ragebot then return end
+    local target = GetClosestPlayer()
+    if not target then return end
+
+    local targetChar = GetCharacter(target)
+    if not targetChar then return end
+    local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return end
+
+    local myChar = LocalPlayer.Character
+    if not myChar then return end
+    local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+
+    local basePos = targetRoot.Position + Ragebot.Offset
+    local jitter = Vector3.new(
+        math.random(-100, 100) / 100 * Ragebot.JitterAmount,
+        math.random(-100, 100) / 100 * Ragebot.JitterAmount,
+        math.random(-100, 100) / 100 * Ragebot.JitterAmount
+    )
+    local targetPos = basePos + jitter
+
+    myRoot.CFrame = CFrame.new(targetPos)
+    local humanoid = myChar:FindFirstChild("Humanoid")
+    if humanoid then humanoid.PlatformStand = true end
+end
+
+local function ToggleRagebot(state)
+    Config.Ragebot = state
+    if state then
+        if Ragebot.Connection then Ragebot.Connection:Disconnect() end
+        Ragebot.Connection = RunService.Heartbeat:Connect(function()
+            if Config.Ragebot then PerformRagebot() end
+        end)
+    else
+        if Ragebot.Connection then
+            Ragebot.Connection:Disconnect()
+            Ragebot.Connection = nil
+        end
+        local myChar = LocalPlayer.Character
+        if myChar then
+            local humanoid = myChar:FindFirstChild("Humanoid")
+            if humanoid then humanoid.PlatformStand = false end
+        end
+    end
+end
+
+local Triggerbot = {Enabled = false}
+local function PerformTriggerbot()
+    if not Config.Triggerbot then return end
+    local mouse = LocalPlayer:GetMouse()
+    if not mouse then return end
+    local target = GetClosestPlayerToMouse()
+    if not target then return end
+
+    local tool = Character:FindFirstChildOfClass("Tool")
+    if tool then
+        local fireEvent = tool:FindFirstChild("FireEvent") or tool:FindFirstChild("RemoteEvent")
+        if fireEvent and fireEvent:IsA("RemoteEvent") then
+            fireEvent:FireServer()
+        end
+    end
+end
+
+local ESP = {Enabled = false, Objects = {}}
+
+local function CreateESP(player)
+    if not Config.ESP_Master then return end
+    local char = GetCharacter(player)
+    if not char then return end
+    if ESP.Objects[player] then
+        ESP.Objects[player]:Destroy()
+        ESP.Objects[player] = nil
+    end
+
+    local espGroup = Instance.new("Folder")
+    espGroup.Name = "ESP_" .. player.Name
+    espGroup.Parent = char
+
+    if Config.Box_ESP then
+        local box = Instance.new("BoxHandleAdornment")
+        box.Size = Vector3.new(2.5, 5, 1)
+        box.Color3 = player.Team == LocalPlayer.Team and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        box.Transparency = 0.6
+        box.ZIndex = 10
+        box.AlwaysOnTop = true
+        box.Adornee = char:FindFirstChild("HumanoidRootPart") or char
+        box.Parent = espGroup
+    end
+
+    if Config.Skeleton_ESP then
+        local function AddLine(part1, part2, color)
+            local line = Instance.new("LineHandleAdornment")
+            line.Width = 1
+            line.Color3 = color
+            line.Transparency = 0.5
+            line.ZIndex = 10
+            line.AlwaysOnTop = true
+            line.Points = {part1.Position, part2.Position}
+            line.Parent = espGroup
+            RunService.Heartbeat:Connect(function()
+                if part1 and part2 and part1.Parent and part2.Parent then
+                    line.Points = {part1.Position, part2.Position}
+                end
+            end)
+            return line
+        end
+
+        local head = char:FindFirstChild("Head")
+        local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("HumanoidRootPart")
+        local leftArm = char:FindFirstChild("LeftUpperArm") or char:FindFirstChild("LeftArm")
+        local rightArm = char:FindFirstChild("RightUpperArm") or char:FindFirstChild("RightArm")
+        local leftLeg = char:FindFirstChild("LeftUpperLeg") or char:FindFirstChild("LeftLeg")
+        local rightLeg = char:FindFirstChild("RightUpperLeg") or char:FindFirstChild("RightLeg")
+
+        if head and torso then AddLine(head, torso, Color3.fromRGB(255,255,255)) end
+        if torso and leftArm then AddLine(torso, leftArm, Color3.fromRGB(255,255,255)) end
+        if torso and rightArm then AddLine(torso, rightArm, Color3.fromRGB(255,255,255)) end
+        if torso and leftLeg then AddLine(torso, leftLeg, Color3.fromRGB(255,255,255)) end
+        if torso and rightLeg then AddLine(torso, rightLeg, Color3.fromRGB(255,255,255)) end
+    end
+
+    if Config.Health_Bar then
+        local billboard = Instance.new("BillboardGui")
+        billboard.Size = UDim2.new(0, 50, 0, 8)
+        billboard.StudsOffset = Vector3.new(0, 3.5, 0)
+        billboard.Parent = espGroup
+
+        local bg = Instance.new("Frame")
+        bg.Size = UDim2.new(1, 0, 1, 0)
+        bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        bg.BackgroundTransparency = 0.5
+        bg.Parent = billboard
+
+        local healthFrame = Instance.new("Frame")
+        healthFrame.Size = UDim2.new(1, 0, 1, 0)
+        healthFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        healthFrame.Parent = bg
+
+        local humanoid = GetHumanoid(player)
+        if humanoid then
+            humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                local percent = humanoid.Health / humanoid.MaxHealth
+                healthFrame.Size = UDim2.new(percent, 0, 1, 0)
+                healthFrame.BackgroundColor3 = Color3.fromRGB(255 * (1 - percent), 255 * percent, 0)
+            end)
+        end
+    end
+
+    if Config.Tracer_Lines then
+        local tracer = Instance.new("LineHandleAdornment")
+        tracer.Width = 1
+        tracer.Color3 = Color3.fromRGB(255, 0, 0)
+        tracer.Transparency = 0.5
+        tracer.ZIndex = 5
+        tracer.AlwaysOnTop = true
+        tracer.Parent = espGroup
+
+        local rootPart = char:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            RunService.Heartbeat:Connect(function()
+                if rootPart and rootPart.Parent then
+                    local camPos = Workspace.CurrentCamera.CFrame.Position
+                    tracer.Points = {camPos, rootPart.Position}
+                end
+            end)
+        end
+    end
+
+    if Config.Info_Display then
+        local infoGui = Instance.new("BillboardGui")
+        infoGui.Size = UDim2.new(0, 100, 0, 30)
+        infoGui.StudsOffset = Vector3.new(0, 3.8, 0)
+        infoGui.Parent = espGroup
+
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(1, 0, 1, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = player.Name
+        nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+        nameLabel.TextSize = 12
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextStrokeTransparency = 0.5
+        nameLabel.Parent = infoGui
+
+        local distLabel = Instance.new("TextLabel")
+        distLabel.Size = UDim2.new(1, 0, 1, 0)
+        distLabel.Position = UDim2.new(0, 0, 1, 0)
+        distLabel.BackgroundTransparency = 1
+        distLabel.Text = ""
+        distLabel.TextColor3 = Color3.fromRGB(200,200,200)
+        distLabel.TextSize = 10
+        distLabel.Font = Enum.Font.Gotham
+        distLabel.Parent = infoGui
+
+        local rootPart = char:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            RunService.Heartbeat:Connect(function()
+                if rootPart and rootPart.Parent then
+                    local dist = (rootPart.Position - (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position or Vector3.new(0,0,0))).Magnitude
+                    distLabel.Text = string.format("%.1f m", dist)
+                end
+            end)
+        end
+    end
+
+    ESP.Objects[player] = espGroup
+end
+
+local function UpdateESP()
+    for player, obj in pairs(ESP.Objects) do
+        pcall(function() obj:Destroy() end)
+    end
+    ESP.Objects = {}
+    if not Config.ESP_Master then return end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and IsAlive(player) then
+            if not Config.Team_Filter or player.Team ~= LocalPlayer.Team then
+                CreateESP(player)
+            end
+        end
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        UpdateESP()
+    end)
+    UpdateESP()
+end)
+Players.PlayerRemoving:Connect(function(player)
+    if ESP.Objects[player] then
+        pcall(function() ESP.Objects[player]:Destroy() end)
+        ESP.Objects[player] = nil
+    end
+end)
+task.spawn(function()
+    while task.wait(1) do
+        if Config.ESP_Master then UpdateESP() end
+    end
+end)
+
+local Chams = {Enabled = false, Objects = {}}
+local function UpdateChams()
+    for player, obj in pairs(Chams.Objects) do
+        pcall(function() obj:Destroy() end)
+    end
+    Chams.Objects = {}
+    if not Config.Chams_Enabled then return end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and IsAlive(player) then
+            local char = GetCharacter(player)
+            if char then
+                local highlight = Instance.new("Highlight")
+                highlight.FillColor = Color3.fromRGB(255,0,0)
+                highlight.FillTransparency = 0.5
+                highlight.OutlineColor = Color3.fromRGB(255,255,255)
+                highlight.OutlineTransparency = 0.3
+                highlight.Adornee = char
+                highlight.Parent = char
+                Chams.Objects[player] = highlight
+            end
+        end
+    end
+end
+
+local InfiniteJump = {Enabled = false, OriginalJumpPower = 50}
+local function SetupInfiniteJump()
+    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    if Config.Infinite_Jump then
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        humanoid.JumpPower = 50
+        UserInputService.InputBegan:Connect(function(input, processed)
+            if processed then return end
+            if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
+                if Config.Infinite_Jump and humanoid and humanoid.Parent then
+                    humanoid.Jump = true
+                end
+            end
+        end)
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    SetupInfiniteJump()
+end)
+
+local Fly = {Enabled = false, Flying = false, BodyVelocity = nil, BodyGyro = nil}
+local function ToggleFly(state)
+    Config.Fly_Mode = state
+    if state then
+        local char = LocalPlayer.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        local humanoid = char:FindFirstChild("Humanoid")
+        if humanoid then humanoid.PlatformStand = true end
+
+        Fly.BodyVelocity = Instance.new("BodyVelocity")
+        Fly.BodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        Fly.BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        Fly.BodyVelocity.Parent = root
+
+        Fly.BodyGyro = Instance.new("BodyGyro")
+        Fly.BodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+        Fly.BodyGyro.CFrame = root.CFrame
+        Fly.BodyGyro.Parent = root
+
+        Fly.Flying = true
+        task.spawn(function()
+            while Fly.Flying and Config.Fly_Mode do
+                local speed = Config.Fly_Speed or 80
+                local moveDir = Vector3.new()
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + Workspace.CurrentCamera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - Workspace.CurrentCamera.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - Workspace.CurrentCamera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + Workspace.CurrentCamera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0,1,0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir = moveDir - Vector3.new(0,1,0) end
+
+                if moveDir.Magnitude > 0 then
+                    moveDir = moveDir.Unit * speed
+                    if Fly.BodyVelocity then Fly.BodyVelocity.Velocity = moveDir end
+                else
+                    if Fly.BodyVelocity then Fly.BodyVelocity.Velocity = Vector3.new(0,0,0) end
+                end
+                task.wait()
+            end
+        end)
+    else
+        Fly.Flying = false
+        if Fly.BodyVelocity then Fly.BodyVelocity:Destroy(); Fly.BodyVelocity = nil end
+        if Fly.BodyGyro then Fly.BodyGyro:Destroy(); Fly.BodyGyro = nil end
+        local char = LocalPlayer.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            if humanoid then humanoid.PlatformStand = false end
+        end
+    end
+end
+
+local Noclip = {Enabled = false}
+local function ToggleNoclip(state)
+    Config.Noclip = state
+    local char = LocalPlayer.Character
+    if not char then return end
+    for _, part in pairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not state
+        end
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    if Config.Noclip then ToggleNoclip(true) end
+end)
+
+local SpeedHack = {Enabled = false, OriginalSpeed = 16}
+local function SetupSpeedHack()
+    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    if Config.Speed_Hack then
+        SpeedHack.OriginalSpeed = humanoid.WalkSpeed
+        humanoid.WalkSpeed = Config.Speed_Val or 40
+    else
+        if SpeedHack.OriginalSpeed > 0 then
+            humanoid.WalkSpeed = SpeedHack.OriginalSpeed
+        end
+    end
+end
+
+local function OnSpeedChange()
+    if Config.Speed_Hack then
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
+    end
+end
+
+local function ToggleSkybox(state)
+    Config.Skybox_Mode = state
+    if state then
+        local sky = Lighting:FindFirstChildOfClass("Sky")
+        if not sky then sky = Instance.new("Sky"); sky.Parent = Lighting end
+        local id = Config.Custom_Sky_Id or "600835154"
+        local asset = "rbxassetid://" .. tostring(id)
+        sky.SkyboxBk = asset; sky.SkyboxDn = asset; sky.SkyboxFt = asset
+        sky.SkyboxLf = asset; sky.SkyboxRt = asset; sky.SkyboxUp = asset
+
+        local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+        if not atmosphere then atmosphere = Instance.new("Atmosphere"); atmosphere.Parent = Lighting end
+        atmosphere.Density = 0.3; atmosphere.Offset = 0.1
+        atmosphere.Color = Color3.fromRGB(255,200,150)
+        atmosphere.Decay = Color3.fromRGB(100,80,150)
+    else
+        local sky = Lighting:FindFirstChildOfClass("Sky")
+        if sky then sky:Destroy() end
+        local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+        if atmosphere then atmosphere:Destroy() end
+    end
+end
+
+local DeathAudio = {Enabled = false}
+local function PlayDeathAudio()
+    if not Config.Death_Audio then return end
+    local id = Config.Death_Audio_Id or "84615664978587"
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://" .. tostring(id)
+    sound.Volume = 1
+    sound.Parent = Workspace
+    sound:Play()
+    task.wait(sound.TimeLength)
+    sound:Destroy()
+end
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    char.Humanoid.Died:Connect(function()
+        PlayDeathAudio()
+    end)
+end)
+
+local RainbowCursor = {Enabled = false, Connection = nil, Crosshair = nil, Hue = 0}
+local function CreateCrosshair()
+    if RainbowCursor.Crosshair then RainbowCursor.Crosshair:Destroy(); RainbowCursor.Crosshair = nil end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "RainbowCrosshair"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    screenGui.Parent = CoreGui
+
+    local center = Instance.new("Frame")
+    center.Size = UDim2.new(0, 40, 0, 40)
+    center.Position = UDim2.new(0.5, -20, 0.5, -20)
+    center.BackgroundTransparency = 1
+    center.ZIndex = 9999
+    center.Parent = screenGui
+
+    local thickness = 2
+    local length = 12
+    local gap = 4
+
+    local function makeLine(anchor, pos, size)
+        local line = Instance.new("Frame")
+        line.Size = size
+        line.Position = pos
+        line.AnchorPoint = anchor
+        line.BackgroundColor3 = Color3.fromRGB(255,255,255)
+        line.BackgroundTransparency = 0.2
+        line.ZIndex = 10000
+        line.Parent = center
+        return line
+    end
+
+    makeLine(Vector2.new(0.5,1), UDim2.new(0.5,0,0.5,-gap), UDim2.new(0,thickness,0,length))
+    makeLine(Vector2.new(0.5,0), UDim2.new(0.5,0,0.5,gap), UDim2.new(0,thickness,0,length))
+    makeLine(Vector2.new(1,0.5), UDim2.new(0.5,-gap,0.5,0), UDim2.new(0,length,0,thickness))
+    makeLine(Vector2.new(0,0.5), UDim2.new(0.5,gap,0.5,0), UDim2.new(0,length,0,thickness))
+
+    RainbowCursor.Crosshair = screenGui
+    return center
+end
+
+local function SetupRainbowCursor()
+    if Config.Interactive_Cursor then
+        RainbowCursor.Enabled = true
+        local center = CreateCrosshair()
+        if not center then return end
+        if RainbowCursor.Connection then RainbowCursor.Connection:Disconnect() end
+
+        RainbowCursor.Connection = RunService.Heartbeat:Connect(function()
+            if not RainbowCursor.Enabled or not center.Parent then
+                if RainbowCursor.Connection then
+                    RainbowCursor.Connection:Disconnect()
+                    RainbowCursor.Connection = nil
+                end
+                return
+            end
+            RainbowCursor.Hue = (RainbowCursor.Hue + 0.01) % 1
+            local color = Color3.fromHSV(RainbowCursor.Hue, 1, 1)
+            for _, child in ipairs(center:GetChildren()) do
+                if child:IsA("Frame") then
+                    child.BackgroundColor3 = color
+                    child.BackgroundTransparency = 0.1
+                end
+            end
+            center.Rotation = (center.Rotation + 1.5) % 360
+        end)
+    else
+        RainbowCursor.Enabled = false
+        if RainbowCursor.Connection then
+            RainbowCursor.Connection:Disconnect()
+            RainbowCursor.Connection = nil
+        end
+        if RainbowCursor.Crosshair then
+            RainbowCursor.Crosshair:Destroy()
+            RainbowCursor.Crosshair = nil
+        end
+    end
+end
+
+local function SetupFPSUnlocker(state)
+    Config.FPS_Opt = state
+    pcall(function()
+        if setfpscap then setfpscap(state and 120 or 60) end
+    end)
+end
+
+local function ToggleThirdPerson(state)
+    Config.Third_Person = state
+    local camera = Workspace.CurrentCamera
+    if not camera then return end
+    camera.CameraType = state and Enum.CameraType.Custom or Enum.CameraType.Default
+end
+
+local function ToggleSpoof(state)
+    Config.Device_Spoof = state
+    GuiService:SetEmotesVisible(state)
+end
+
+local AntiAim = {Enabled = false, Connection = nil}
+local function SetupAntiAim(state)
+    Config.Anti_Aim = state
+    if state then
+        if AntiAim.Connection then AntiAim.Connection:Disconnect() end
+        AntiAim.Connection = RunService.Heartbeat:Connect(function()
+            if not Config.Anti_Aim then return end
+            local char = LocalPlayer.Character
+            if not char then return end
+            local head = char:FindFirstChild("Head")
+            if head then
+                head.CFrame = head.CFrame * CFrame.Angles(0, math.rad(180), 0)
+            end
+        end)
+    else
+        if AntiAim.Connection then
+            AntiAim.Connection:Disconnect()
+            AntiAim.Connection = nil
+        end
+    end
+end
+
+local function UpdateAllFeatures()
+    if Config.Aimbot then PerformAimbot() end
+    if Config.Ragebot then PerformRagebot() end
+    if Config.Triggerbot then PerformTriggerbot() end
+    if Config.Speed_Hack then
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
+    end
+end
+
+RunService.Heartbeat:Connect(UpdateAllFeatures)
+
+local configMetatable = {
+    __index = Config,
+    __newindex = function(t, key, value)
+        rawset(t, key, value)
+        if key == "Ragebot" then
+            ToggleRagebot(value)
+        elseif key == "Fly_Mode" then
+            ToggleFly(value)
+        elseif key == "Noclip" then
+            ToggleNoclip(value)
+        elseif key == "Speed_Hack" then
+            SetupSpeedHack()
+        elseif key == "Skybox_Mode" then
+            ToggleSkybox(value)
+        elseif key == "Third_Person" then
+            ToggleThirdPerson(value)
+        elseif key == "Device_Spoof" then
+            ToggleSpoof(value)
+        elseif key == "Interactive_Cursor" then
+            SetupRainbowCursor()
+        elseif key == "FPS_Opt" then
+            SetupFPSUnlocker(value)
+        elseif key == "Anti_Aim" then
+            SetupAntiAim(value)
+        elseif key == "ESP_Master" or key == "Box_ESP" or key == "Skeleton_ESP" or
+               key == "Health_Bar" or key == "Tracer_Lines" or key == "Info_Display" or
+               key == "Team_Filter" then
+            UpdateESP()
+        elseif key == "Chams_Enabled" then
+            UpdateChams()
+        elseif key == "Speed_Val" then
+            OnSpeedChange()
+        elseif key == "Show_FOV" or key == "Aimbot_FOV" then
+            UpdateFOVCircle()
+        end
+    end
+}
+setmetatable(Config, configMetatable)
+
+task.spawn(function()
+    wait(0.5)
+    if Config.Ragebot then ToggleRagebot(true) end
+    if Config.Interactive_Cursor then SetupRainbowCursor() end
+    if Config.Aimbot then UpdateFOVCircle() end
+    if Config.Fly_Mode then ToggleFly(true) end
+    if Config.Noclip then ToggleNoclip(true) end
+    if Config.Speed_Hack then SetupSpeedHack() end
+    if Config.Skybox_Mode then ToggleSkybox(true) end
+    if Config.Third_Person then ToggleThirdPerson(true) end
+    if Config.Device_Spoof then ToggleSpoof(true) end
+    if Config.FPS_Opt then SetupFPSUnlocker(true) end
+    if Config.Anti_Aim then SetupAntiAim(true) end
+    if Config.ESP_Master then UpdateESP() end
+    if Config.Chams_Enabled then UpdateChams() end
+    if Config.Infinite_Jump then SetupInfiniteJump() end
+end)
+
+local function Cleanup()
+    if RainbowCursor.Connection then RainbowCursor.Connection:Disconnect() end
+    if RainbowCursor.Crosshair then RainbowCursor.Crosshair:Destroy() end
+    if Ragebot.Connection then Ragebot.Connection:Disconnect() end
+    if FOVCircle then FOVCircle:Destroy() end
+    for _, obj in pairs(ESP.Objects) do pcall(function() obj:Destroy() end) end
+    for _, obj in pairs(Chams.Objects) do pcall(function() obj:Destroy() end) end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if not getgenv().SharedConfig then
+            Cleanup()
+            break
+        end
+    end
+end)
