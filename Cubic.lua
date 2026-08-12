@@ -2,7 +2,7 @@
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-pngWJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
---!nocheck
+
 -- ============================================================
 -- CONFIG 자체 초기화
 -- ============================================================
