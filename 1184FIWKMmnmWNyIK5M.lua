@@ -1,33 +1,7 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
-
 --!nocheck
-
 ----------------------------------------------------------------
--- CubicUltimateHub
--- Original UI structure preserved
---
--- IMPORTANT:
--- This is a UI-focused rewrite.
--- The original four-panel structure is preserved:
--- Combat / Visuals / Player / Misc
---
--- UI improvements:
--- • Strong black + red palette
--- • Larger panels
--- • Centered four-column layout
--- • Rounded but not overly soft
--- • Real draggable windows
--- • Better spacing / typography
--- • Better ON/OFF states
--- • Better sliders
--- • Better Properties popup
--- • English default
--- • RightShift toggles UI
--- • RightShift is consumed to avoid Shift Lock
--- • Mobile gets UI button
--- • PC gets keybind panel
+-- CUBIC ULTIMATE HUB - UI ONLY (최적화)
 ----------------------------------------------------------------
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -39,3244 +13,795 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 
 ----------------------------------------------------------------
--- THEME
-----------------------------------------------------------------
-
-local THEME = {
-	Background = Color3.fromRGB(8, 7, 7),
-
-	Panel = Color3.fromRGB(18, 12, 12),
-	Panel2 = Color3.fromRGB(25, 14, 14),
-	Panel3 = Color3.fromRGB(36, 18, 18),
-
-	Header = Color3.fromRGB(220, 44, 38),
-	HeaderDark = Color3.fromRGB(176, 29, 29),
-
-	Accent = Color3.fromRGB(238, 48, 40),
-	AccentBright = Color3.fromRGB(255, 86, 72),
-
-	Border = Color3.fromRGB(117, 37, 37),
-	BorderBright = Color3.fromRGB(171, 47, 47),
-
-	Text = Color3.fromRGB(255, 248, 248),
-	TextSecondary = Color3.fromRGB(211, 187, 187),
-	TextMuted = Color3.fromRGB(149, 122, 122),
-
-	Off = Color3.fromRGB(28, 16, 16),
-	OffHover = Color3.fromRGB(43, 21, 21),
-	OffBorder = Color3.fromRGB(72, 37, 37),
-
-	Black = Color3.fromRGB(0, 0, 0),
-}
-
-----------------------------------------------------------------
 -- CONFIG
 ----------------------------------------------------------------
-
 getgenv().SharedConfig = getgenv().SharedConfig or {
-	Language = "EN",
-	MenuKey = Enum.KeyCode.RightShift,
-
-	ESP_Master = true,
-	Skeleton_ESP = true,
-	Box_ESP = true,
-	Health_Bar = true,
-	Tracer_Lines = true,
-	Info_Display = true,
-	Team_Filter = false,
-	Chams_Enabled = false,
-
-	Aimbot = false,
-	Aimbot_Smooth = 2,
-	Aimbot_FOV = 150,
-	Show_FOV = true,
-	Hitbox = "Head",
-
-	Ragebot = false,
-	Ragebot_Speed = 5,
-	Wall_Check = false,
-	Triggerbot = false,
-
-	Infinite_Jump = false,
-	Fly_Mode = false,
-	Fly_Speed = 80,
-	Noclip = false,
-	Speed_Hack = false,
-	Speed_Val = 40,
-
-	Skybox_Mode = false,
-	Custom_Sky_Id = "600835154",
-
-	Death_Audio = false,
-	Death_Audio_Id = "84615664978587",
-
-	Anti_Aim = false,
-	Third_Person = false,
-	Device_Spoof = false,
-	Interactive_Cursor = false,
-	FPS_Opt = false,
+    Language = "EN",
+    MenuKey = Enum.KeyCode.RightShift,
+    ESP_Master = false,
+    Box_ESP = false,
+    Health_Bar = false,
+    Info_Display = false,
+    Team_Filter = false,
+    Chams_Enabled = false,
+    Aimbot = false,
+    Aimbot_Smooth = 2,
+    Aimbot_FOV = 150,
+    Show_FOV = true,
+    Hitbox = "Head",
+    Ragebot = false,
+    Triggerbot = false,
+    Infinite_Jump = false,
+    Fly_Mode = false,
+    Fly_Speed = 80,
+    Noclip = false,
+    Speed_Hack = false,
+    Speed_Val = 40,
+    Skybox_Mode = false,
+    Custom_Sky_Id = "600835154",
+    Death_Audio = false,
+    Death_Audio_Id = "84615664978587",
+    Anti_Aim = false,
+    Third_Person = false,
+    Device_Spoof = false,
+    Interactive_Cursor = false,
+    FPS_Opt = false,
 }
 
 local Config = getgenv().SharedConfig
 
 ----------------------------------------------------------------
--- TRANSLATIONS
+-- THEME
 ----------------------------------------------------------------
-
-local Translations = {
-	EN = {
-		Combat = "Combat Systems",
-		Visuals = "Visuals & ESP",
-		Player = "Player Enhancements",
-		Misc = "Misc & World",
-
-		Aimbot = "Aimbot",
-		Ragebot = "Ragebot",
-		WallCheck = "Wall Check",
-		Triggerbot = "Triggerbot",
-		AntiAim = "Visual Anti-Aim",
-
-		ESPMaster = "ESP Master",
-		SkeletonESP = "Skeleton",
-		BoxESP = "Box ESP",
-		HealthBar = "Health Bar",
-		PlayerInfo = "Player Info",
-		TracerLines = "Tracers",
-		TeamFilter = "Team Filter",
-		Chams = "Chams / Highlight",
-
-		InfJump = "Infinite Jump",
-		FlyMode = "Flight Mode",
-		Noclip = "Noclip",
-		SpeedHack = "Speed Hack",
-		Forced3P = "Third-Person",
-
-		SkyChanger = "Sky Atmosphere",
-		DeathAudio = "Death Audio",
-		Cursor = "Rainbow Cursor",
-		FPSOpt = "FPS Unlocker",
-		Spoof = "HWID Spoof",
-
-		Properties = "Advanced Properties",
-		SwitchHitbox = "Target Hitbox",
-		ToggleSky = "Toggle Atmosphere",
-		SoundID = "Audio Asset ID",
-		SkyID = "Sky Texture ID",
-
-		Language = "Language",
-		Keybind = "UI Toggle Key",
-		PressToBind = "Press a key...",
-		MobileToggle = "UI",
-
-		Smoothness = "Smoothness",
-		RageSpeed = "Rage Speed",
-		FlySpeed = "Flight Speed",
-		SpeedVal = "Speed Value",
-		FOVRadius = "FOV Radius",
-		ShowFOV = "Show FOV Circle",
-	},
-
-	KO = {
-		Combat = "전투 시스템",
-		Visuals = "시각 및 ESP",
-		Player = "플레이어 강화",
-		Misc = "기타 및 월드",
-
-		Aimbot = "에임봇",
-		Ragebot = "레이지봇",
-		WallCheck = "벽 관통 체크",
-		Triggerbot = "트리거봇",
-		AntiAim = "안티에임",
-
-		ESPMaster = "ESP 마스터",
-		SkeletonESP = "스켈레톤",
-		BoxESP = "박스 ESP",
-		HealthBar = "체력 바",
-		PlayerInfo = "정보 표시",
-		TracerLines = "트레이서",
-		TeamFilter = "팀 필터",
-		Chams = "하이라이트",
-
-		InfJump = "무한 점프",
-		FlyMode = "비행 모드",
-		Noclip = "노클립",
-		SpeedHack = "스피드 핵",
-		Forced3P = "강제 3인칭",
-
-		SkyChanger = "스카이 대기효과",
-		DeathAudio = "데스 오디오",
-		Cursor = "무지개 커서",
-		FPSOpt = "프레임 최적화",
-		Spoof = "기기 스푸핑",
-
-		Properties = "고급 속성 설정",
-		SwitchHitbox = "타겟 히트박스",
-		ToggleSky = "대기 모드 전환",
-		SoundID = "오디오 에셋 ID",
-		SkyID = "스카이 텍스처 ID",
-
-		Language = "언어",
-		Keybind = "UI 토글 키",
-		PressToBind = "키를 누르세요...",
-		MobileToggle = "UI",
-
-		Smoothness = "부드러움",
-		RageSpeed = "레이지 속도",
-		FlySpeed = "비행 속도",
-		SpeedVal = "이동 값",
-		FOVRadius = "FOV 범위",
-		ShowFOV = "FOV 원 표시",
-	},
+local T = {
+    Bg = Color3.fromRGB(8,7,7),
+    Panel = Color3.fromRGB(18,12,12),
+    Panel2 = Color3.fromRGB(25,14,14),
+    Panel3 = Color3.fromRGB(36,18,18),
+    Header = Color3.fromRGB(220,44,38),
+    HeaderD = Color3.fromRGB(176,29,29),
+    Accent = Color3.fromRGB(238,48,40),
+    AccentB = Color3.fromRGB(255,86,72),
+    Border = Color3.fromRGB(117,37,37),
+    BorderB = Color3.fromRGB(171,47,47),
+    Text = Color3.fromRGB(255,248,248),
+    TextS = Color3.fromRGB(211,187,187),
+    TextM = Color3.fromRGB(149,122,122),
+    Off = Color3.fromRGB(28,16,16),
+    OffH = Color3.fromRGB(43,21,21),
+    OffB = Color3.fromRGB(72,37,37),
+    Black = Color3.fromRGB(0,0,0),
 }
 
-local function T(key)
-	local language =
-		Config.Language == "KO"
-		and "KO"
-		or "EN"
-
-	return
-		(Translations[language] and Translations[language][key])
-		or Translations.EN[key]
-		or key
-end
-
 ----------------------------------------------------------------
--- CLEANUP
+-- TRANSLATIONS (압축)
 ----------------------------------------------------------------
+local L = {
+    EN = {
+        Combat="Combat Systems", Visuals="Visuals & ESP", Player="Player Enhancements", Misc="Misc & World",
+        Aimbot="Aimbot", Ragebot="Ragebot", Triggerbot="Triggerbot", AntiAim="Visual Anti-Aim",
+        ESPMaster="ESP Master", BoxESP="Box ESP", HealthBar="Health Bar", PlayerInfo="Player Info",
+        TeamFilter="Team Filter", Chams="Chams", InfJump="Infinite Jump", FlyMode="Flight Mode",
+        Noclip="Noclip", SpeedHack="Speed Hack", Forced3P="Third-Person", SkyChanger="Sky Atmosphere",
+        DeathAudio="Death Audio", Cursor="Rainbow Cursor", FPSOpt="FPS Unlocker", Spoof="HWID Spoof",
+        Properties="Properties", Language="Language", Keybind="UI Toggle Key", PressToBind="Press a key...",
+        MobileToggle="UI", Smoothness="Smoothness", FlySpeed="Flight Speed", SpeedVal="Speed Value",
+        FOVRadius="FOV Radius", ShowFOV="Show FOV Circle",
+    },
+    KO = {
+        Combat="전투 시스템", Visuals="시각 및 ESP", Player="플레이어 강화", Misc="기타 및 월드",
+        Aimbot="에임봇", Ragebot="레이지봇", Triggerbot="트리거봇", AntiAim="안티에임",
+        ESPMaster="ESP 마스터", BoxESP="박스 ESP", HealthBar="체력 바", PlayerInfo="정보 표시",
+        TeamFilter="팀 필터", Chams="하이라이트", InfJump="무한 점프", FlyMode="비행 모드",
+        Noclip="노클립", SpeedHack="스피드 핵", Forced3P="강제 3인칭", SkyChanger="스카이 대기효과",
+        DeathAudio="데스 오디오", Cursor="무지개 커서", FPSOpt="프레임 최적화", Spoof="기기 스푸핑",
+        Properties="속성 설정", Language="언어", Keybind="UI 토글 키", PressToBind="키를 누르세요...",
+        MobileToggle="UI", Smoothness="부드러움", FlySpeed="비행 속도", SpeedVal="이동 값",
+        FOVRadius="FOV 범위", ShowFOV="FOV 원 표시",
+    }
+}
 
-pcall(function()
-	local old = CoreGui:FindFirstChild("CubicUltimateHub")
-
-	if old then
-		old:Destroy()
-	end
-end)
-
-pcall(function()
-	local playerGui =
-		LocalPlayer:FindFirstChildOfClass("PlayerGui")
-
-	if playerGui then
-		local old =
-			playerGui:FindFirstChild("CubicUltimateHub")
-
-		if old then
-			old:Destroy()
-		end
-	end
-end)
+local function Tr(k) local lang = Config.Language=="KO" and "KO" or "EN" return (L[lang] and L[lang][k]) or L.EN[k] or k end
 
 ----------------------------------------------------------------
 -- HELPERS
 ----------------------------------------------------------------
-
-local function corner(parent, radius)
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, radius)
-	c.Parent = parent
-	return c
-end
-
-local function stroke(
-	parent,
-	color,
-	thickness,
-	transparency
-)
-	local s = Instance.new("UIStroke")
-
-	s.Color = color
-	s.Thickness = thickness
-	s.Transparency =
-		transparency or 0
-
-	s.Parent = parent
-
-	return s
-end
-
-local function tween(
-	instance,
-	duration,
-	properties,
-	style,
-	direction
-)
-	pcall(function()
-		TweenService:Create(
-			instance,
-			TweenInfo.new(
-				duration or 0.18,
-				style
-					or Enum.EasingStyle.Quart,
-				direction
-					or Enum.EasingDirection.Out
-			),
-			properties
-		):Play()
-	end)
-end
+local function cr(p,r) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r) c.Parent=p return c end
+local function st(p,c,t,tr) local s=Instance.new("UIStroke") s.Color=c s.Thickness=t s.Transparency=tr or 0 s.Parent=p return s end
+local function tw(i,d,p,s,dir) pcall(function() TweenService:Create(i,TweenInfo.new(d or .18,s or Enum.EasingStyle.Quart,dir or Enum.EasingDirection.Out),p):Play() end) end
+local function make(cls,p) local i=Instance.new(cls) i.Parent=p return i end
+local function size(i,x,y) i.Size=UDim2.fromOffset(x,y) end
+local function pos(i,x,y) i.Position=UDim2.fromOffset(x,y) end
+local function scale(i,x,y) i.Size=UDim2.new(x or 0,y or 0,0,0) end
+local function pscale(i,x,y) i.Position=UDim2.new(x or 0,y or 0,0,0) end
 
 ----------------------------------------------------------------
 -- SCREEN GUI
 ----------------------------------------------------------------
+local SG = make("ScreenGui", CoreGui)
+SG.Name = "CubicUltimateHub"
+SG.ResetOnSpawn = false
+SG.IgnoreGuiInset = true
+SG.ZIndexBehavior = Enum.ZIndexBehavior.Global
+SG.DisplayOrder = 1000
 
-local ScreenGui =
-	Instance.new("ScreenGui")
+local Root = make("Frame", SG)
+Root.Name = "Root"
+Root.Size = UDim2.fromScale(1,1)
+Root.BackgroundTransparency = 1
+Root.BorderSizePixel = 0
 
-ScreenGui.Name =
-	"CubicUltimateHub"
+make("Frame", Root).Name = "Dimmer"
+local Dimmer = Root.Dimmer
+Dimmer.Size = UDim2.fromScale(1,1)
+Dimmer.BackgroundColor3 = T.Black
+Dimmer.BackgroundTransparency = .55
+Dimmer.BorderSizePixel = 0
+Dimmer.ZIndex = 0
 
-ScreenGui.ResetOnSpawn =
-	false
+local WL = make("Frame", Root)
+WL.Name = "WindowLayer"
+WL.Size = UDim2.fromScale(1,1)
+WL.BackgroundTransparency = 1
+WL.BorderSizePixel = 0
+WL.ZIndex = 10
 
-ScreenGui.IgnoreGuiInset =
-	true
-
-ScreenGui.ZIndexBehavior =
-	Enum.ZIndexBehavior.Global
-
-ScreenGui.DisplayOrder =
-	1000
-
-ScreenGui.Parent =
-	CoreGui
-
-----------------------------------------------------------------
--- ROOT
-----------------------------------------------------------------
-
-local Root =
-	Instance.new("Frame")
-
-Root.Name =
-	"Root"
-
-Root.Size =
-	UDim2.fromScale(
-		1,
-		1
-	)
-
-Root.BackgroundTransparency =
-	1
-
-Root.BorderSizePixel =
-	0
-
-Root.Parent =
-	ScreenGui
-
-----------------------------------------------------------------
--- DIMMER
-----------------------------------------------------------------
-
-local Dimmer =
-	Instance.new("Frame")
-
-Dimmer.Name =
-	"Dimmer"
-
-Dimmer.Size =
-	UDim2.fromScale(
-		1,
-		1
-	)
-
-Dimmer.BackgroundColor3 =
-	THEME.Black
-
-Dimmer.BackgroundTransparency =
-	0.55
-
-Dimmer.BorderSizePixel =
-	0
-
-Dimmer.ZIndex =
-	0
-
-Dimmer.Parent =
-	Root
-
-----------------------------------------------------------------
--- WINDOW CONTAINER
-----------------------------------------------------------------
-
-local WindowLayer =
-	Instance.new("Frame")
-
-WindowLayer.Name =
-	"WindowLayer"
-
-WindowLayer.Size =
-	UDim2.fromScale(
-		1,
-		1
-	)
-
-WindowLayer.BackgroundTransparency =
-	1
-
-WindowLayer.BorderSizePixel =
-	0
-
-WindowLayer.ZIndex =
-	10
-
-WindowLayer.Parent =
-	Root
-
-----------------------------------------------------------------
--- SCALE
-----------------------------------------------------------------
-
-local Scale =
-	Instance.new("UIScale")
-
-Scale.Parent =
-	WindowLayer
-
-local function updateScale()
-	local camera =
-		Workspace.CurrentCamera
-
-	if not camera then
-		return
-	end
-
-	local viewport =
-		camera.ViewportSize
-
-	local widthScale =
-		viewport.X / 1400
-
-	local heightScale =
-		viewport.Y / 820
-
-	local finalScale =
-		math.min(
-			widthScale,
-			heightScale
-		)
-
-	Scale.Scale =
-		math.clamp(
-			finalScale,
-			0.72,
-			1
-		)
+local Scl = make("UIScale", WL)
+local function updScl()
+    local c = Workspace.CurrentCamera
+    if not c then return end
+    local v = c.ViewportSize
+    local f = math.min(v.X/1400, v.Y/820)
+    Scl.Scale = math.clamp(f,.72,1)
 end
-
-task.defer(updateScale)
-
-Workspace:GetPropertyChangedSignal(
-	"CurrentCamera"
-):Connect(function()
-	task.defer(updateScale)
-end)
+task.defer(updScl)
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.defer(updScl) end)
 
 ----------------------------------------------------------------
--- DATA
+-- POPUP
 ----------------------------------------------------------------
-
-local Windows = {}
-local UIElements = {}
-
-----------------------------------------------------------------
--- PROPERTY POPUP
-----------------------------------------------------------------
-
-local Popup =
-	Instance.new("Frame")
-
-Popup.Name =
-	"PropertiesPopup"
-
-Popup.Size =
-	UDim2.fromOffset(
-		360,
-		330
-	)
-
-Popup.AnchorPoint =
-	Vector2.new(
-		0.5,
-		0.5
-	)
-
-Popup.Position =
-	UDim2.new(
-		0.5,
-		0,
-		0.5,
-		0
-	)
-
-Popup.BackgroundColor3 =
-	THEME.Panel2
-
-Popup.BorderSizePixel =
-	0
-
-Popup.Visible =
-	false
-
-Popup.ZIndex =
-	5000
-
-Popup.Parent =
-	Root
-
-corner(
-	Popup,
-	16
-)
-
-stroke(
-	Popup,
-	THEME.BorderBright,
-	1.6,
-	0.05
-)
-
-----------------------------------------------------------------
--- POPUP HEADER
-----------------------------------------------------------------
-
-local PopupHeader =
-	Instance.new("Frame")
-
-PopupHeader.Size =
-	UDim2.new(
-		1,
-		0,
-		0,
-		54
-	)
-
-PopupHeader.BackgroundColor3 =
-	THEME.HeaderDark
-
-PopupHeader.BorderSizePixel =
-	0
-
-PopupHeader.ZIndex =
-	5001
-
-PopupHeader.Parent =
-	Popup
-
-corner(
-	PopupHeader,
-	16
-)
-
-local PopupCover =
-	Instance.new("Frame")
-
-PopupCover.Size =
-	UDim2.new(
-		1,
-		0,
-		0,
-		18
-	)
-
-PopupCover.Position =
-	UDim2.new(
-		0,
-		0,
-		1,
-		-18
-	)
-
-PopupCover.BackgroundColor3 =
-	THEME.HeaderDark
-
-PopupCover.BorderSizePixel =
-	0
-
-PopupCover.ZIndex =
-	5001
-
-PopupCover.Parent =
-	PopupHeader
-
-local PopupTitle =
-	Instance.new("TextLabel")
-
-PopupTitle.Position =
-	UDim2.fromOffset(
-		16,
-		0
-	)
-
-PopupTitle.Size =
-	UDim2.new(
-		1,
-		-58,
-		1,
-		0
-	)
-
-PopupTitle.BackgroundTransparency =
-	1
-
-PopupTitle.Text =
-	""
-
-PopupTitle.TextColor3 =
-	THEME.Text
-
-PopupTitle.TextSize =
-	14
-
-PopupTitle.Font =
-	Enum.Font.GothamBold
-
-PopupTitle.TextXAlignment =
-	Enum.TextXAlignment.Left
-
-PopupTitle.ZIndex =
-	5002
-
-PopupTitle.Parent =
-	PopupHeader
-
-local PopupClose =
-	Instance.new("TextButton")
-
-PopupClose.AnchorPoint =
-	Vector2.new(
-		1,
-		0.5
-	)
-
-PopupClose.Position =
-	UDim2.new(
-		1,
-		-12,
-		0.5,
-		0
-	)
-
-PopupClose.Size =
-	UDim2.fromOffset(
-		28,
-		28
-	)
-
-PopupClose.BackgroundColor3 =
-	THEME.Panel
-
-PopupClose.BorderSizePixel =
-	0
-
-PopupClose.Text =
-	"×"
-
-PopupClose.TextColor3 =
-	THEME.Text
-
-PopupClose.TextSize =
-	18
-
-PopupClose.Font =
-	Enum.Font.GothamBold
-
-PopupClose.AutoButtonColor =
-	false
-
-PopupClose.ZIndex =
-	5003
-
-PopupClose.Parent =
-	PopupHeader
-
-corner(
-	PopupClose,
-	8
-)
-
-stroke(
-	PopupClose,
-	THEME.Border,
-	1,
-	0.05
-)
-
-----------------------------------------------------------------
--- POPUP CONTENT
-----------------------------------------------------------------
-
-local PopupContent =
-	Instance.new("ScrollingFrame")
-
-PopupContent.Position =
-	UDim2.fromOffset(
-		14,
-		66
-	)
-
-PopupContent.Size =
-	UDim2.new(
-		1,
-		-28,
-		1,
-		-80
-	)
-
-PopupContent.BackgroundTransparency =
-	1
-
-PopupContent.BorderSizePixel =
-	0
-
-PopupContent.ScrollBarThickness =
-	4
-
-PopupContent.ScrollBarImageColor3 =
-	THEME.Accent
-
-PopupContent.AutomaticCanvasSize =
-	Enum.AutomaticSize.Y
-
-PopupContent.CanvasSize =
-	UDim2.fromOffset(
-		0,
-		0
-	)
-
-PopupContent.ZIndex =
-	5001
-
-PopupContent.Parent =
-	Popup
-
-local PopupLayout =
-	Instance.new("UIListLayout")
-
-PopupLayout.Padding =
-	UDim.new(
-		0,
-		10
-	)
-
-PopupLayout.SortOrder =
-	Enum.SortOrder.LayoutOrder
-
-PopupLayout.Parent =
-	PopupContent
-
-local PopupPadding =
-	Instance.new("UIPadding")
-
-PopupPadding.PaddingBottom =
-	UDim.new(
-		0,
-		10
-	)
-
-PopupPadding.Parent =
-	PopupContent
-
-----------------------------------------------------------------
--- POPUP FUNCTIONS
-----------------------------------------------------------------
-
-local function clearPopup()
-	for _, child in ipairs(
-		PopupContent:GetChildren()
-	) do
-		if not child:IsA("UIListLayout")
-			and not child:IsA("UIPadding") then
-
-			child:Destroy()
-		end
-	end
+local Popup = make("Frame", Root)
+Popup.Name = "PropertiesPopup"
+Popup.Size = UDim2.fromOffset(360,330)
+Popup.AnchorPoint = Vector2.new(.5,.5)
+Popup.Position = UDim2.new(.5,0,.5,0)
+Popup.BackgroundColor3 = T.Panel2
+Popup.BorderSizePixel = 0
+Popup.Visible = false
+Popup.ZIndex = 5000
+cr(Popup,16)
+st(Popup,T.BorderB,1.6,.05)
+
+local PH = make("Frame", Popup)
+PH.Size = UDim2.new(1,0,0,54)
+PH.BackgroundColor3 = T.HeaderD
+PH.BorderSizePixel = 0
+PH.ZIndex = 5001
+cr(PH,16)
+make("Frame", PH).Size = UDim2.new(1,0,0,18)
+PH:FindFirstChildOfClass("Frame").Position = UDim2.new(0,0,1,-18)
+PH:FindFirstChildOfClass("Frame").BackgroundColor3 = T.HeaderD
+PH:FindFirstChildOfClass("Frame").BorderSizePixel = 0
+PH:FindFirstChildOfClass("Frame").ZIndex = 5001
+
+local PT = make("TextLabel", PH)
+PT.Position = UDim2.fromOffset(16,0)
+PT.Size = UDim2.new(1,-58,1,0)
+PT.BackgroundTransparency = 1
+PT.Text = ""
+PT.TextColor3 = T.Text
+PT.TextSize = 14
+PT.Font = Enum.Font.GothamBold
+PT.TextXAlignment = Enum.TextXAlignment.Left
+PT.ZIndex = 5002
+
+local PC = make("TextButton", PH)
+PC.AnchorPoint = Vector2.new(1,.5)
+PC.Position = UDim2.new(1,-12,.5,0)
+PC.Size = UDim2.fromOffset(28,28)
+PC.BackgroundColor3 = T.Panel
+PC.BorderSizePixel = 0
+PC.Text = "×"
+PC.TextColor3 = T.Text
+PC.TextSize = 18
+PC.Font = Enum.Font.GothamBold
+PC.AutoButtonColor = false
+PC.ZIndex = 5003
+cr(PC,8)
+st(PC,T.Border,1,.05)
+
+local PContent = make("ScrollingFrame", Popup)
+PContent.Position = UDim2.fromOffset(14,66)
+PContent.Size = UDim2.new(1,-28,1,-80)
+PContent.BackgroundTransparency = 1
+PContent.BorderSizePixel = 0
+PContent.ScrollBarThickness = 4
+PContent.ScrollBarImageColor3 = T.Accent
+PContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+PContent.CanvasSize = UDim2.fromOffset(0,0)
+PContent.ZIndex = 5001
+
+make("UIListLayout", PContent).Padding = UDim.new(0,10)
+make("UIPadding", PContent).PaddingBottom = UDim.new(0,10)
+
+local function ClearPopup()
+    for _,c in ipairs(PContent:GetChildren()) do
+        if not c:IsA("UIListLayout") and not c:IsA("UIPadding") then c:Destroy() end
+    end
 end
 
 local function ClosePopup()
-	Popup.Visible =
-		false
-
-	clearPopup()
+    Popup.Visible = false
+    ClearPopup()
 end
 
-local function OpenPopup(
-	title,
-	builder,
-	mousePosition
-)
-	clearPopup()
+local function OpenPopup(title, builder, mp)
+    ClearPopup()
+    PT.Text = title
+    builder(PContent)
+    local c = Workspace.CurrentCamera
+    if c and mp then
+        local v = c.ViewportSize
+        local w = Popup.AbsoluteSize.X
+        local h = Popup.AbsoluteSize.Y
+        local x = math.clamp(mp.X, w/2+12, v.X-w/2-12)
+        local y = math.clamp(mp.Y, h/2+12, v.Y-h/2-12)
+        Popup.Position = UDim2.fromOffset(x,y)
+    end
+    Popup.Size = UDim2.fromOffset(340,310)
+    Popup.Visible = true
+    tw(Popup,.18,{Size=UDim2.fromOffset(360,330)},Enum.EasingStyle.Back)
+end
+PC.MouseButton1Click:Connect(ClosePopup)
 
-	PopupTitle.Text =
-		title
+----------------------------------------------------------------
+-- UI COMPONENTS
+----------------------------------------------------------------
+local UIE = {}
+local Windows = {}
 
-	builder(
-		PopupContent
-	)
+local function AddTextBox(parent, tk, ck)
+    local w = make("Frame", parent)
+    w.Size = UDim2.new(1,0,0,70)
+    w.BackgroundTransparency = 1
+    w.ZIndex = 5100
 
-	local camera =
-		Workspace.CurrentCamera
+    local l = make("TextLabel", w)
+    l.Size = UDim2.new(1,0,0,20)
+    l.BackgroundTransparency = 1
+    l.Text = Tr(tk)
+    l.TextColor3 = T.TextS
+    l.TextSize = 11
+    l.Font = Enum.Font.GothamMedium
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.ZIndex = 5101
 
-	if camera
-		and mousePosition then
+    local b = make("TextBox", w)
+    b.Position = UDim2.fromOffset(0,28)
+    b.Size = UDim2.new(1,0,0,34)
+    b.BackgroundColor3 = T.Off
+    b.BorderSizePixel = 0
+    b.Text = tostring(Config[ck] or "")
+    b.TextColor3 = T.Text
+    b.TextSize = 12
+    b.Font = Enum.Font.Gotham
+    b.ClearTextOnFocus = false
+    b.TextXAlignment = Enum.TextXAlignment.Left
+    b.ZIndex = 5101
+    cr(b,9); st(b,T.OffB,1,.05)
 
-		local viewport =
-			camera.ViewportSize
-
-		local width =
-			Popup.AbsoluteSize.X
-
-		local height =
-			Popup.AbsoluteSize.Y
-
-		local x =
-			math.clamp(
-				mousePosition.X,
-				width / 2 + 12,
-				viewport.X -
-					width / 2 -
-					12
-			)
-
-		local y =
-			math.clamp(
-				mousePosition.Y,
-				height / 2 + 12,
-				viewport.Y -
-					height / 2 -
-					12
-			)
-
-		Popup.Position =
-			UDim2.fromOffset(
-				x,
-				y
-			)
-	end
-
-	Popup.Size =
-		UDim2.fromOffset(
-			340,
-			310
-		)
-
-	Popup.Visible =
-		true
-
-	tween(
-		Popup,
-		0.18,
-		{
-			Size =
-				UDim2.fromOffset(
-					360,
-					330
-				)
-		},
-		Enum.EasingStyle.Back
-	)
+    b.Focused:Connect(function() tw(b,.12,{BackgroundColor3=T.OffH}) end)
+    b.FocusLost:Connect(function() Config[ck]=b.Text; tw(b,.12,{BackgroundColor3=T.Off}) end)
+    return w
 end
 
-PopupClose.MouseButton1Click:Connect(
-	ClosePopup
-)
+local function AddSlider(parent, tk, ck, mn, mx, stp)
+    local w = make("Frame", parent)
+    w.Size = UDim2.new(1,0,0,60)
+    w.BackgroundTransparency = 1
+    w.ZIndex = 5100
 
-----------------------------------------------------------------
--- TEXTBOX
-----------------------------------------------------------------
+    local l = make("TextLabel", w)
+    l.Size = UDim2.new(1,0,0,20)
+    l.BackgroundTransparency = 1
+    l.Text = Tr(tk)..": "..tostring(Config[ck] or mn)
+    l.TextColor3 = T.Text
+    l.TextSize = 11
+    l.Font = Enum.Font.GothamMedium
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.ZIndex = 5101
 
-local function AddTextBox(
-	parent,
-	titleKey,
-	configKey
-)
-	local wrapper =
-		Instance.new("Frame")
+    local track = make("Frame", w)
+    track.Position = UDim2.fromOffset(0,30)
+    track.Size = UDim2.new(1,0,0,12)
+    track.BackgroundColor3 = T.Off
+    track.BorderSizePixel = 0
+    track.ZIndex = 5101
+    cr(track,8); st(track,T.OffB,1,.05)
 
-	wrapper.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			70
-		)
+    local fill = make("Frame", track)
+    fill.Size = UDim2.new(0,0,1,0)
+    fill.BackgroundColor3 = T.Accent
+    fill.BorderSizePixel = 0
+    fill.ZIndex = 5102
+    cr(fill,8)
 
-	wrapper.BackgroundTransparency =
-		1
+    local knob = make("Frame", track)
+    knob.AnchorPoint = Vector2.new(.5,.5)
+    knob.Position = UDim2.new(0,0,.5,0)
+    knob.Size = UDim2.fromOffset(18,18)
+    knob.BackgroundColor3 = T.Text
+    knob.BorderSizePixel = 0
+    knob.ZIndex = 5103
+    cr(knob,20); st(knob,T.Accent,2,0)
 
-	wrapper.ZIndex =
-		5100
+    local val = tonumber(Config[ck]) or mn
+    local drag = false
 
-	wrapper.Parent =
-		parent
+    local function apply(mx)
+        local w2 = math.max(1, track.AbsoluteSize.X)
+        local p = math.clamp((mx - track.AbsolutePosition.X)/w2, 0, 1)
+        local raw = mn + (mx - mn) * p
+        val = math.floor(raw/stp + .5) * stp
+        val = math.clamp(val, mn, mx)
+        Config[ck] = val
+        local pc = (val - mn) / (mx - mn)
+        fill.Size = UDim2.new(pc,0,1,0)
+        knob.Position = UDim2.new(pc,0,.5,0)
+        l.Text = Tr(tk)..": "..tostring(val)
+    end
 
-	local label =
-		Instance.new("TextLabel")
+    local ip = math.clamp((val-mn)/(mx-mn),0,1)
+    fill.Size = UDim2.new(ip,0,1,0)
+    knob.Position = UDim2.new(ip,0,.5,0)
 
-	label.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			20
-		)
-
-	label.BackgroundTransparency =
-		1
-
-	label.Text =
-		T(titleKey)
-
-	label.TextColor3 =
-		THEME.TextSecondary
-
-	label.TextSize =
-		11
-
-	label.Font =
-		Enum.Font.GothamMedium
-
-	label.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	label.ZIndex =
-		5101
-
-	label.Parent =
-		wrapper
-
-	local box =
-		Instance.new("TextBox")
-
-	box.Position =
-		UDim2.fromOffset(
-			0,
-			28
-		)
-
-	box.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			34
-		)
-
-	box.BackgroundColor3 =
-		THEME.Off
-
-	box.BorderSizePixel =
-		0
-
-	box.Text =
-		tostring(
-			Config[configKey]
-			or ""
-		)
-
-	box.TextColor3 =
-		THEME.Text
-
-	box.TextSize =
-		12
-
-	box.Font =
-		Enum.Font.Gotham
-
-	box.ClearTextOnFocus =
-		false
-
-	box.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	box.ZIndex =
-		5101
-
-	box.Parent =
-		wrapper
-
-	corner(
-		box,
-		9
-	)
-
-	stroke(
-		box,
-		THEME.OffBorder,
-		1,
-		0.05
-	)
-
-	box.Focused:Connect(
-		function()
-			tween(
-				box,
-				0.12,
-				{
-					BackgroundColor3 =
-						THEME.OffHover
-				}
-			)
-		end
-	)
-
-	box.FocusLost:Connect(
-		function()
-			Config[configKey] =
-				box.Text
-
-			tween(
-				box,
-				0.12,
-				{
-					BackgroundColor3 =
-						THEME.Off
-				}
-			)
-		end
-	)
-
-	return wrapper
+    track.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            drag = true
+            apply(i.Position.X)
+            tw(knob,.1,{Size=UDim2.fromOffset(22,22)})
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if not drag then return end
+        if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+            apply(UserInputService:GetMouseLocation().X)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            drag = false
+            tw(knob,.1,{Size=UDim2.fromOffset(18,18)})
+        end
+    end)
+    return w
 end
 
-----------------------------------------------------------------
--- SLIDER
-----------------------------------------------------------------
-
-local function AddSlider(
-	parent,
-	titleKey,
-	configKey,
-	minimum,
-	maximum,
-	step
-)
-	local wrapper =
-		Instance.new("Frame")
-
-	wrapper.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			60
-		)
-
-	wrapper.BackgroundTransparency =
-		1
-
-	wrapper.ZIndex =
-		5100
-
-	wrapper.Parent =
-		parent
-
-	local label =
-		Instance.new("TextLabel")
-
-	label.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			20
-		)
-
-	label.BackgroundTransparency =
-		1
-
-	label.Text =
-		T(titleKey) ..
-		": " ..
-		tostring(
-			Config[configKey]
-			or minimum
-		)
-
-	label.TextColor3 =
-		THEME.Text
-
-	label.TextSize =
-		11
-
-	label.Font =
-		Enum.Font.GothamMedium
-
-	label.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	label.ZIndex =
-		5101
-
-	label.Parent =
-		wrapper
-
-	local track =
-		Instance.new("Frame")
-
-	track.Position =
-		UDim2.fromOffset(
-			0,
-			30
-		)
-
-	track.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			12
-		)
-
-	track.BackgroundColor3 =
-		THEME.Off
-
-	track.BorderSizePixel =
-		0
-
-	track.ZIndex =
-		5101
-
-	track.Parent =
-		wrapper
-
-	corner(
-		track,
-		8
-	)
-
-	stroke(
-		track,
-		THEME.OffBorder,
-		1,
-		0.05
-	)
-
-	local fill =
-		Instance.new("Frame")
-
-	fill.Size =
-		UDim2.new(
-			0,
-			0,
-			1,
-			0
-		)
-
-	fill.BackgroundColor3 =
-		THEME.Accent
-
-	fill.BorderSizePixel =
-		0
-
-	fill.ZIndex =
-		5102
-
-	fill.Parent =
-		track
-
-	corner(
-		fill,
-		8
-	)
-
-	local knob =
-		Instance.new("Frame")
-
-	knob.AnchorPoint =
-		Vector2.new(
-			0.5,
-			0.5
-		)
-
-	knob.Position =
-		UDim2.new(
-			0,
-			0,
-			0.5,
-			0
-		)
-
-	knob.Size =
-		UDim2.fromOffset(
-			18,
-			18
-		)
-
-	knob.BackgroundColor3 =
-		THEME.Text
-
-	knob.BorderSizePixel =
-		0
-
-	knob.ZIndex =
-		5103
-
-	knob.Parent =
-		track
-
-	corner(
-		knob,
-		20
-	)
-
-	stroke(
-		knob,
-		THEME.Accent,
-		2,
-		0
-	)
-
-	local value =
-		tonumber(
-			Config[configKey]
-		)
-		or minimum
-
-	local dragging =
-		false
-
-	local function applyValue(
-		mouseX
-	)
-		local width =
-			math.max(
-				1,
-				track.AbsoluteSize.X
-			)
-
-		local pos =
-			math.clamp(
-				(
-					mouseX
-					-
-					track.AbsolutePosition.X
-				)
-				/ width,
-				0,
-				1
-			)
-
-		local raw =
-			minimum
-			+
-			(
-				maximum
-				-
-				minimum
-			)
-			*
-			pos
-
-		value =
-			math.floor(
-				raw / step
-				+
-				0.5
-			)
-			*
-			step
-
-		value =
-			math.clamp(
-				value,
-				minimum,
-				maximum
-			)
-
-		Config[configKey] =
-			value
-
-		local percentage =
-			(
-				value
-				-
-				minimum
-			)
-			/
-			(
-				maximum
-				-
-				minimum
-			)
-
-		fill.Size =
-			UDim2.new(
-				percentage,
-				0,
-				1,
-				0
-			)
-
-		knob.Position =
-			UDim2.new(
-				percentage,
-				0,
-				0.5,
-				0
-			)
-
-		label.Text =
-			T(titleKey) ..
-			": " ..
-			tostring(value)
-	end
-
-	local initialPercent =
-		math.clamp(
-			(
-				value
-				-
-				minimum
-			)
-			/
-			(
-				maximum
-				-
-				minimum
-			),
-			0,
-			1
-		)
-
-	fill.Size =
-		UDim2.new(
-			initialPercent,
-			0,
-			1,
-			0
-		)
-
-	knob.Position =
-		UDim2.new(
-			initialPercent,
-			0,
-			0.5,
-			0
-		)
-
-	track.InputBegan:Connect(
-		function(input)
-			if input.UserInputType ==
-				Enum.UserInputType.MouseButton1
-				or
-				input.UserInputType ==
-					Enum.UserInputType.Touch then
-
-				dragging =
-					true
-
-				applyValue(
-					input.Position.X
-				)
-
-				tween(
-					knob,
-					0.10,
-					{
-						Size =
-							UDim2.fromOffset(
-								22,
-								22
-							)
-					}
-				)
-			end
-		end
-	)
-
-	UserInputService.InputChanged:Connect(
-		function(input)
-			if not dragging then
-				return
-			end
-
-			if input.UserInputType ==
-				Enum.UserInputType.MouseMovement
-				or
-				input.UserInputType ==
-					Enum.UserInputType.Touch then
-
-				applyValue(
-					UserInputService:
-						GetMouseLocation()
-						.X
-				)
-			end
-		end
-	)
-
-	UserInputService.InputEnded:Connect(
-		function(input)
-			if input.UserInputType ==
-				Enum.UserInputType.MouseButton1
-				or
-				input.UserInputType ==
-					Enum.UserInputType.Touch then
-
-				dragging =
-					false
-
-				tween(
-					knob,
-					0.10,
-					{
-						Size =
-							UDim2.fromOffset(
-								18,
-								18
-							)
-					}
-				)
-			end
-		end
-	)
-
-	return wrapper
-end
-
-----------------------------------------------------------------
--- TOGGLE
-----------------------------------------------------------------
-
-local function AddToggle(
-	parent,
-	nameKey,
-	configKey,
-	callback,
-	rightClickFunc
-)
-	local active =
-		Config[configKey]
-		== true
-
-	local button =
-		Instance.new(
-			"TextButton"
-		)
-
-	button.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			42
-		)
-
-	button.BackgroundColor3 =
-		active
-		and Color3.fromRGB(
-			105,
-			27,
-			27
-		)
-		or THEME.Off
-
-	button.BorderSizePixel =
-		0
-
-	button.Text =
-		"  " ..
-		T(nameKey)
-
-	button.TextColor3 =
-		active
-		and THEME.Text
-		or THEME.TextSecondary
-
-	button.TextSize =
-		12
-
-	button.Font =
-		Enum.Font.GothamMedium
-
-	button.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	button.AutoButtonColor =
-		false
-
-	button.ZIndex =
-		300
-
-	button.Parent =
-		parent
-
-	corner(
-		button,
-		10
-	)
-
-	local buttonStroke =
-		stroke(
-			button,
-			active
-			and THEME.BorderBright
-			or THEME.OffBorder,
-			1.15,
-			0.05
-		)
-
-	local status =
-		Instance.new(
-			"TextLabel"
-		)
-
-	status.AnchorPoint =
-		Vector2.new(
-			1,
-			0.5
-		)
-
-	status.Position =
-		UDim2.new(
-			1,
-			-30,
-			0.5,
-			0
-		)
-
-	status.Size =
-		UDim2.fromOffset(
-			32,
-			18
-		)
-
-	status.BackgroundTransparency =
-		1
-
-	status.Text =
-		active
-		and "ON"
-		or "OFF"
-
-	status.TextColor3 =
-		active
-		and THEME.AccentBright
-		or THEME.TextMuted
-
-	status.TextSize =
-		9
-
-	status.Font =
-		Enum.Font.GothamBold
-
-	status.TextXAlignment =
-		Enum.TextXAlignment.Right
-
-	status.ZIndex =
-		301
-
-	status.Parent =
-		button
-
-	local indicator =
-		Instance.new(
-			"Frame"
-		)
-
-	indicator.AnchorPoint =
-		Vector2.new(
-			1,
-			0.5
-		)
-
-	indicator.Position =
-		UDim2.new(
-			1,
-			-12,
-			0.5,
-			0
-		)
-
-	indicator.Size =
-		UDim2.fromOffset(
-			8,
-			8
-		)
-
-	indicator.BackgroundColor3 =
-		active
-		and THEME.AccentBright
-		or THEME.TextMuted
-
-	indicator.BorderSizePixel =
-		0
-
-	indicator.ZIndex =
-		302
-
-	indicator.Parent =
-		button
-
-	corner(
-		indicator,
-		8
-	)
-
-	local function updateVisual()
-		button.BackgroundColor3 =
-			active
-			and Color3.fromRGB(
-				105,
-				27,
-				27
-			)
-			or THEME.Off
-
-		button.TextColor3 =
-			active
-			and THEME.Text
-			or THEME.TextSecondary
-
-		buttonStroke.Color =
-			active
-			and THEME.BorderBright
-			or THEME.OffBorder
-
-		status.Text =
-			active
-			and "ON"
-			or "OFF"
-
-		status.TextColor3 =
-			active
-			and THEME.AccentBright
-			or THEME.TextMuted
-
-		indicator.BackgroundColor3 =
-			active
-			and THEME.AccentBright
-			or THEME.TextMuted
-	end
-
-	local function setState(
-		state
-	)
-		active =
-			state == true
-
-		Config[configKey] =
-			active
-
-		updateVisual()
-
-		if callback then
-			callback(active)
-		end
-	end
-
-	button.MouseButton1Click:Connect(
-		function()
-			setState(
-				not active
-			)
-		end
-	)
-
-	button.MouseEnter:Connect(
-		function()
-			tween(
-				button,
-				0.10,
-				{
-					BackgroundColor3 =
-						active
-						and Color3.fromRGB(
-							122,
-							31,
-							31
-						)
-						or THEME.OffHover
-				}
-			)
-		end
-	)
-
-	button.MouseLeave:Connect(
-		function()
-			updateVisual()
-		end
-	)
-
-	if rightClickFunc then
-		button.MouseButton2Click:Connect(
-			function()
-				OpenPopup(
-					T(nameKey)
-					..
-					" "
-					..
-					T("Properties"),
-					rightClickFunc,
-					UserInputService:
-						GetMouseLocation()
-				)
-			end
-		)
-	end
-
-	table.insert(
-		UIElements,
-		{
-			Type = "Toggle",
-			Button = button,
-			NameKey = nameKey
-		}
-	)
-
-	return button
+local function AddToggle(parent, tk, ck, cb, rcb)
+    local active = Config[ck] == true
+    local btn = make("TextButton", parent)
+    btn.Size = UDim2.new(1,0,0,42)
+    btn.BackgroundColor3 = active and Color3.fromRGB(105,27,27) or T.Off
+    btn.BorderSizePixel = 0
+    btn.Text = "  "..Tr(tk)
+    btn.TextColor3 = active and T.Text or T.TextS
+    btn.TextSize = 12
+    btn.Font = Enum.Font.GothamMedium
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.AutoButtonColor = false
+    btn.ZIndex = 300
+    cr(btn,10)
+    local bs = st(btn, active and T.BorderB or T.OffB,1.15,.05)
+
+    local status = make("TextLabel", btn)
+    status.AnchorPoint = Vector2.new(1,.5)
+    status.Position = UDim2.new(1,-30,.5,0)
+    status.Size = UDim2.fromOffset(32,18)
+    status.BackgroundTransparency = 1
+    status.Text = active and "ON" or "OFF"
+    status.TextColor3 = active and T.AccentB or T.TextM
+    status.TextSize = 9
+    status.Font = Enum.Font.GothamBold
+    status.TextXAlignment = Enum.TextXAlignment.Right
+    status.ZIndex = 301
+
+    local ind = make("Frame", btn)
+    ind.AnchorPoint = Vector2.new(1,.5)
+    ind.Position = UDim2.new(1,-12,.5,0)
+    ind.Size = UDim2.fromOffset(8,8)
+    ind.BackgroundColor3 = active and T.AccentB or T.TextM
+    ind.BorderSizePixel = 0
+    ind.ZIndex = 302
+    cr(ind,8)
+
+    local function upd()
+        btn.BackgroundColor3 = active and Color3.fromRGB(105,27,27) or T.Off
+        btn.TextColor3 = active and T.Text or T.TextS
+        bs.Color = active and T.BorderB or T.OffB
+        status.Text = active and "ON" or "OFF"
+        status.TextColor3 = active and T.AccentB or T.TextM
+        ind.BackgroundColor3 = active and T.AccentB or T.TextM
+    end
+
+    local function setState(s)
+        active = s == true
+        Config[ck] = active
+        upd()
+        if cb then cb(active) end
+    end
+
+    btn.MouseButton1Click:Connect(function() setState(not active) end)
+    btn.MouseEnter:Connect(function() tw(btn,.1,{BackgroundColor3=active and Color3.fromRGB(122,31,31) or T.OffH}) end)
+    btn.MouseLeave:Connect(upd)
+
+    if rcb then
+        btn.MouseButton2Click:Connect(function()
+            OpenPopup(Tr(tk).." "..Tr("Properties"), rcb, UserInputService:GetMouseLocation())
+        end)
+    end
+
+    table.insert(UIE, {Type="Toggle", Button=btn, NameKey=tk})
+    return btn
 end
 
 ----------------------------------------------------------------
 -- CREATE WINDOW
 ----------------------------------------------------------------
-
-local function CreateWindow(
-	titleKey,
-	xOffset
-)
-	local window =
-		Instance.new(
-			"ScrollingFrame"
-		)
-
-	window.Name =
-		titleKey ..
-		"Window"
-
-	window.AnchorPoint =
-		Vector2.new(
-			0.5,
-			0.5
-		)
-
-	window.Position =
-		UDim2.new(
-			0.5,
-			xOffset,
-			0.5,
-			0
-		)
-
-	window.Size =
-		UDim2.fromOffset(
-			300,
-			660
-		)
-
-	window.BackgroundColor3 =
-		THEME.Panel
-
-	window.BackgroundTransparency =
-		0
-
-	window.BorderSizePixel =
-		0
-
-	window.CanvasSize =
-		UDim2.fromOffset(
-			0,
-			0
-		)
-
-	window.AutomaticCanvasSize =
-		Enum.AutomaticSize.Y
-
-	window.ScrollBarThickness =
-		5
-
-	window.ScrollBarImageColor3 =
-		THEME.Accent
-
-	window.ScrollingDirection =
-		Enum.ScrollingDirection.Y
-
-	window.ZIndex =
-		100
-
-	window.Parent =
-		WindowLayer
-
-	corner(
-		window,
-		16
-	)
-
-	local windowStroke =
-		stroke(
-			window,
-			THEME.Border,
-			1.4,
-			0.02
-		)
-
-	----------------------------------------------------------------
-	-- HEADER
-	----------------------------------------------------------------
-
-	local header =
-		Instance.new("Frame")
-
-	header.Name =
-		"Header"
-
-	header.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			60
-		)
-
-	header.BackgroundColor3 =
-		THEME.Header
-
-	header.BorderSizePixel =
-		0
-
-	header.ZIndex =
-		110
-
-	header.Parent =
-		window
-
-	corner(
-		header,
-		16
-	)
-
-	local headerCover =
-		Instance.new("Frame")
-
-	headerCover.Size =
-		UDim2.new(
-			1,
-			0,
-			0,
-			18
-		)
-
-	headerCover.Position =
-		UDim2.new(
-			0,
-			0,
-			1,
-			-18
-		)
-
-	headerCover.BackgroundColor3 =
-		THEME.Header
-
-	headerCover.BorderSizePixel =
-		0
-
-	headerCover.ZIndex =
-		110
-
-	headerCover.Parent =
-		header
-
-	local headerLine =
-		Instance.new("Frame")
-
-	headerLine.Position =
-		UDim2.fromOffset(
-			14,
-			14
-		)
-
-	headerLine.Size =
-		UDim2.fromOffset(
-			4,
-			32
-		)
-
-	headerLine.BackgroundColor3 =
-		THEME.Text
-
-	headerLine.BorderSizePixel =
-		0
-
-	headerLine.ZIndex =
-		111
-
-	headerLine.Parent =
-		header
-
-	corner(
-		headerLine,
-		4
-	)
-
-	local title =
-		Instance.new("TextLabel")
-
-	title.Name =
-		"TitleLabel"
-
-	title.Position =
-		UDim2.fromOffset(
-			28,
-			8
-		)
-
-	title.Size =
-		UDim2.new(
-			1,
-			-40,
-			0,
-			24
-		)
-
-	title.BackgroundTransparency =
-		1
-
-	title.Text =
-		T(titleKey)
-
-	title.TextColor3 =
-		THEME.Text
-
-	title.TextSize =
-		15
-
-	title.Font =
-		Enum.Font.GothamBold
-
-	title.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	title.ZIndex =
-		111
-
-	title.Parent =
-		header
-
-	local sub =
-		Instance.new(
-			"TextLabel"
-		)
-
-	sub.Position =
-		UDim2.fromOffset(
-			29,
-			32
-		)
-
-	sub.Size =
-		UDim2.new(
-			1,
-			-42,
-			0,
-			15
-		)
-
-	sub.BackgroundTransparency =
-		1
-
-	sub.Text =
-		"MODULE CONTROLS"
-
-	sub.TextColor3 =
-		Color3.fromRGB(
-			255,
-			194,
-			187
-		)
-
-	sub.TextSize =
-		8
-
-	sub.Font =
-		Enum.Font.GothamBold
-
-	sub.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	sub.ZIndex =
-		111
-
-	sub.Parent =
-		header
-
-	----------------------------------------------------------------
-	-- CONTENT
-	----------------------------------------------------------------
-
-	local body =
-		Instance.new(
-			"ScrollingFrame"
-		)
-
-	body.Name =
-		"Content"
-
-	body.Position =
-		UDim2.fromOffset(
-			12,
-			72
-		)
-
-	body.Size =
-		UDim2.new(
-			1,
-			-24,
-			1,
-			-84
-		)
-
-	body.BackgroundTransparency =
-		1
-
-	body.BorderSizePixel =
-		0
-
-	body.ScrollBarThickness =
-		4
-
-	body.ScrollBarImageColor3 =
-		THEME.Accent
-
-	body.AutomaticCanvasSize =
-		Enum.AutomaticSize.Y
-
-	body.CanvasSize =
-		UDim2.fromOffset(
-			0,
-			0
-		)
-
-	body.ZIndex =
-		105
-
-	body.Parent =
-		window
-
-	local list =
-		Instance.new(
-			"UIListLayout"
-		)
-
-	list.SortOrder =
-		Enum.SortOrder.LayoutOrder
-
-	list.Padding =
-		UDim.new(
-			0,
-			9
-		)
-
-	list.Parent =
-		body
-
-	local padding =
-		Instance.new(
-			"UIPadding"
-		)
-
-	padding.PaddingTop =
-		UDim.new(
-			0,
-			2
-		)
-
-	padding.PaddingBottom =
-		UDim.new(
-			0,
-			12
-		)
-
-	padding.PaddingLeft =
-		UDim.new(
-			0,
-			2
-		)
-
-	padding.PaddingRight =
-		UDim.new(
-			0,
-			2
-		)
-
-	padding.Parent =
-		body
-
-	----------------------------------------------------------------
-	-- DRAG
-	----------------------------------------------------------------
-
-	local dragging =
-		false
-
-	local dragStart =
-		nil
-
-	local startPosition =
-		nil
-
-	header.InputBegan:Connect(
-		function(input)
-			if input.UserInputType ==
-				Enum.UserInputType.MouseButton1
-				or
-				input.UserInputType ==
-					Enum.UserInputType.Touch then
-
-				dragging =
-					true
-
-				dragStart =
-					input.Position
-
-				startPosition =
-					window.Position
-			end
-		end
-	)
-
-	header.InputEnded:Connect(
-		function(input)
-			if input.UserInputType ==
-				Enum.UserInputType.MouseButton1
-				or
-				input.UserInputType ==
-					Enum.UserInputType.Touch then
-
-				dragging =
-					false
-			end
-		end
-	)
-
-	UserInputService.InputChanged:Connect(
-		function(input)
-			if not dragging then
-				return
-			end
-
-			if not dragStart
-				or not startPosition then
-
-				return
-			end
-
-			if input.UserInputType ~=
-				Enum.UserInputType.MouseMovement
-				and
-				input.UserInputType ~=
-					Enum.UserInputType.Touch then
-
-				return
-			end
-
-			local delta =
-				input.Position
-				-
-				dragStart
-
-			window.Position =
-				UDim2.new(
-					startPosition.X.Scale,
-					startPosition.X.Offset
-						+
-						delta.X,
-
-					startPosition.Y.Scale,
-					startPosition.Y.Offset
-						+
-						delta.Y
-				)
-		end
-	)
-
-	----------------------------------------------------------------
-	-- SAVE
-	----------------------------------------------------------------
-
-	window:SetAttribute(
-		"TitleKey",
-		titleKey
-	)
-
-	table.insert(
-		Windows,
-		{
-			Frame = window,
-			Title = title,
-			TitleKey = titleKey,
-			BasePosition = window.Position
-		}
-	)
-
-	return window, body
+local function CreateWindow(tk, xo)
+    local w = make("ScrollingFrame", WL)
+    w.Name = tk.."Window"
+    w.AnchorPoint = Vector2.new(.5,.5)
+    w.Position = UDim2.new(.5,xo,.5,0)
+    w.Size = UDim2.fromOffset(300,660)
+    w.BackgroundColor3 = T.Panel
+    w.BackgroundTransparency = 0
+    w.BorderSizePixel = 0
+    w.CanvasSize = UDim2.fromOffset(0,0)
+    w.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    w.ScrollBarThickness = 5
+    w.ScrollBarImageColor3 = T.Accent
+    w.ScrollingDirection = Enum.ScrollingDirection.Y
+    w.ZIndex = 100
+    cr(w,16); st(w,T.Border,1.4,.02)
+
+    local h = make("Frame", w)
+    h.Name = "Header"
+    h.Size = UDim2.new(1,0,0,60)
+    h.BackgroundColor3 = T.Header
+    h.BorderSizePixel = 0
+    h.ZIndex = 110
+    cr(h,16)
+
+    local hc = make("Frame", h)
+    hc.Size = UDim2.new(1,0,0,18)
+    hc.Position = UDim2.new(0,0,1,-18)
+    hc.BackgroundColor3 = T.Header
+    hc.BorderSizePixel = 0
+    hc.ZIndex = 110
+
+    local hl = make("Frame", h)
+    hl.Position = UDim2.fromOffset(14,14)
+    hl.Size = UDim2.fromOffset(4,32)
+    hl.BackgroundColor3 = T.Text
+    hl.BorderSizePixel = 0
+    hl.ZIndex = 111
+    cr(hl,4)
+
+    local title = make("TextLabel", h)
+    title.Name = "TitleLabel"
+    title.Position = UDim2.fromOffset(28,8)
+    title.Size = UDim2.new(1,-40,0,24)
+    title.BackgroundTransparency = 1
+    title.Text = Tr(tk)
+    title.TextColor3 = T.Text
+    title.TextSize = 15
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.ZIndex = 111
+
+    local sub = make("TextLabel", h)
+    sub.Position = UDim2.fromOffset(29,32)
+    sub.Size = UDim2.new(1,-42,0,15)
+    sub.BackgroundTransparency = 1
+    sub.Text = "MODULE CONTROLS"
+    sub.TextColor3 = Color3.fromRGB(255,194,187)
+    sub.TextSize = 8
+    sub.Font = Enum.Font.GothamBold
+    sub.TextXAlignment = Enum.TextXAlignment.Left
+    sub.ZIndex = 111
+
+    local body = make("ScrollingFrame", w)
+    body.Name = "Content"
+    body.Position = UDim2.fromOffset(12,72)
+    body.Size = UDim2.new(1,-24,1,-84)
+    body.BackgroundTransparency = 1
+    body.BorderSizePixel = 0
+    body.ScrollBarThickness = 4
+    body.ScrollBarImageColor3 = T.Accent
+    body.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    body.CanvasSize = UDim2.fromOffset(0,0)
+    body.ZIndex = 105
+
+    local list = make("UIListLayout", body)
+    list.SortOrder = Enum.SortOrder.LayoutOrder
+    list.Padding = UDim.new(0,9)
+
+    local pad = make("UIPadding", body)
+    pad.PaddingTop = UDim.new(0,2)
+    pad.PaddingBottom = UDim.new(0,12)
+    pad.PaddingLeft = UDim.new(0,2)
+    pad.PaddingRight = UDim.new(0,2)
+
+    local drag = false
+    local ds, sp
+    h.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            drag = true; ds = i.Position; sp = w.Position
+        end
+    end)
+    h.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            drag = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if not drag or not ds or not sp then return end
+        if i.UserInputType ~= Enum.UserInputType.MouseMovement and i.UserInputType ~= Enum.UserInputType.Touch then return end
+        local d = i.Position - ds
+        w.Position = UDim2.new(sp.X.Scale, sp.X.Offset + d.X, sp.Y.Scale, sp.Y.Offset + d.Y)
+    end)
+
+    w:SetAttribute("TitleKey", tk)
+    table.insert(Windows, {Frame=w, Title=title, TitleKey=tk, BasePosition=w.Position})
+    return w, body
 end
 
 ----------------------------------------------------------------
--- FOUR ORIGINAL WINDOWS
---
--- Same four-panel concept as the original,
--- but genuinely larger and centered.
+-- BUILD UI
 ----------------------------------------------------------------
+local WC, CB = CreateWindow("Combat", -477)
+local WV, VB = CreateWindow("Visuals", -159)
+local WP, PB = CreateWindow("Player", 159)
+local WM, MB = CreateWindow("Misc", 477)
 
-local WinCombat, CombatBody =
-	CreateWindow(
-		"Combat",
-		-477
-	)
+-- Combat
+AddToggle(CB, "Aimbot", "Aimbot", nil, function(c)
+    AddSlider(c, "Smoothness", "Aimbot_Smooth", 1, 10, 1)
+    AddSlider(c, "FOVRadius", "Aimbot_FOV", 50, 500, 10)
+    AddToggle(c, "ShowFOV", "Show_FOV")
+end)
+AddToggle(CB, "Ragebot", "Ragebot")
+AddToggle(CB, "Triggerbot", "Triggerbot")
+AddToggle(CB, "AntiAim", "Anti_Aim")
 
-local WinVisuals, VisualsBody =
-	CreateWindow(
-		"Visuals",
-		-159
-	)
+-- Visuals
+AddToggle(VB, "ESPMaster", "ESP_Master")
+AddToggle(VB, "BoxESP", "Box_ESP")
+AddToggle(VB, "HealthBar", "Health_Bar")
+AddToggle(VB, "PlayerInfo", "Info_Display")
+AddToggle(VB, "TeamFilter", "Team_Filter")
+AddToggle(VB, "Chams", "Chams_Enabled")
 
-local WinPlayer, PlayerBody =
-	CreateWindow(
-		"Player",
-		159
-	)
+-- Player
+AddToggle(PB, "InfJump", "Infinite_Jump")
+AddToggle(PB, "FlyMode", "Fly_Mode", nil, function(c)
+    AddSlider(c, "FlySpeed", "Fly_Speed", 10, 200, 5)
+end)
+AddToggle(PB, "Noclip", "Noclip")
+AddToggle(PB, "SpeedHack", "Speed_Hack", nil, function(c)
+    AddSlider(c, "SpeedVal", "Speed_Val", 16, 150, 5)
+end)
+AddToggle(PB, "Forced3P", "Third_Person")
 
-local WinMisc, MiscBody =
-	CreateWindow(
-		"Misc",
-		477
-	)
-
-----------------------------------------------------------------
--- COMBAT
-----------------------------------------------------------------
-
-AddToggle(
-	CombatBody,
-	"Aimbot",
-	"Aimbot",
-	nil,
-	function(content)
-
-		AddSlider(
-			content,
-			"Smoothness",
-			"Aimbot_Smooth",
-			1,
-			10,
-			1
-		)
-
-		AddSlider(
-			content,
-			"FOVRadius",
-			"Aimbot_FOV",
-			50,
-			500,
-			10
-		)
-
-		AddToggle(
-			content,
-			"ShowFOV",
-			"Show_FOV"
-		)
-	end
-)
-
-AddToggle(
-	CombatBody,
-	"Ragebot",
-	"Ragebot",
-	nil,
-	function(content)
-
-		AddSlider(
-			content,
-			"RageSpeed",
-			"Ragebot_Speed",
-			1,
-			20,
-			1
-		)
-	end
-)
-
-AddToggle(
-	CombatBody,
-	"WallCheck",
-	"Wall_Check"
-)
-
-AddToggle(
-	CombatBody,
-	"Triggerbot",
-	"Triggerbot"
-)
-
-AddToggle(
-	CombatBody,
-	"AntiAim",
-	"Anti_Aim"
-)
-
-----------------------------------------------------------------
--- VISUALS
-----------------------------------------------------------------
-
-AddToggle(
-	VisualsBody,
-	"ESPMaster",
-	"ESP_Master"
-)
-
-AddToggle(
-	VisualsBody,
-	"SkeletonESP",
-	"Skeleton_ESP"
-)
-
-AddToggle(
-	VisualsBody,
-	"BoxESP",
-	"Box_ESP"
-)
-
-AddToggle(
-	VisualsBody,
-	"HealthBar",
-	"Health_Bar"
-)
-
-AddToggle(
-	VisualsBody,
-	"TracerLines",
-	"Tracer_Lines"
-)
-
-AddToggle(
-	VisualsBody,
-	"PlayerInfo",
-	"Info_Display"
-)
-
-AddToggle(
-	VisualsBody,
-	"TeamFilter",
-	"Team_Filter"
-)
-
-AddToggle(
-	VisualsBody,
-	"Chams",
-	"Chams_Enabled"
-)
-
-----------------------------------------------------------------
--- PLAYER
-----------------------------------------------------------------
-
-AddToggle(
-	PlayerBody,
-	"InfJump",
-	"Infinite_Jump"
-)
-
-AddToggle(
-	PlayerBody,
-	"FlyMode",
-	"Fly_Mode",
-	nil,
-	function(content)
-
-		AddSlider(
-			content,
-			"FlySpeed",
-			"Fly_Speed",
-			10,
-			200,
-			5
-		)
-	end
-)
-
-AddToggle(
-	PlayerBody,
-	"Noclip",
-	"Noclip"
-)
-
-AddToggle(
-	PlayerBody,
-	"SpeedHack",
-	"Speed_Hack",
-	nil,
-	function(content)
-
-		AddSlider(
-			content,
-			"SpeedVal",
-			"Speed_Val",
-			16,
-			150,
-			5
-		)
-	end
-)
-
-AddToggle(
-	PlayerBody,
-	"Forced3P",
-	"Third_Person"
-)
-
-----------------------------------------------------------------
--- MISC
-----------------------------------------------------------------
-
-AddToggle(
-	MiscBody,
-	"SkyChanger",
-	"Skybox_Mode",
-	function(state)
-		if state then
-
-			local sky =
-				Lighting:
-					FindFirstChildOfClass(
-						"Sky"
-					)
-
-			if not sky then
-				sky =
-					Instance.new(
-						"Sky"
-					)
-
-				sky.Parent =
-					Lighting
-			end
-
-			local asset =
-				"rbxassetid://" ..
-				tostring(
-					Config.Custom_Sky_Id
-				)
-
-			sky.SkyboxBk =
-				asset
-
-			sky.SkyboxDn =
-				asset
-
-			sky.SkyboxFt =
-				asset
-
-			sky.SkyboxLf =
-				asset
-
-			sky.SkyboxRt =
-				asset
-
-			sky.SkyboxUp =
-				asset
-
-		else
-
-			local sky =
-				Lighting:
-					FindFirstChildOfClass(
-						"Sky"
-					)
-
-			if sky then
-				sky:Destroy()
-			end
-		end
-	end,
-	function(content)
-
-		AddTextBox(
-			content,
-			"SkyID",
-			"Custom_Sky_Id"
-		)
-	end
-)
-
-AddToggle(
-	MiscBody,
-	"DeathAudio",
-	"Death_Audio",
-	nil,
-	function(content)
-
-		AddTextBox(
-			content,
-			"SoundID",
-			"Death_Audio_Id"
-		)
-	end
-)
-
-AddToggle(
-	MiscBody,
-	"Cursor",
-	"Interactive_Cursor"
-)
-
-AddToggle(
-	MiscBody,
-	"FPSOpt",
-	"FPS_Opt",
-	function(state)
-
-		pcall(
-			function()
-
-				if setfpscap then
-					setfpscap(
-						state
-							and 120
-							or 60
-					)
-				end
-
-			end
-		)
-
-	end
-)
-
-AddToggle(
-	MiscBody,
-	"Spoof",
-	"Device_Spoof"
-)
+-- Misc
+AddToggle(MB, "SkyChanger", "Skybox_Mode", function(s)
+    if s then
+        local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky")
+        sky.Parent = Lighting
+        local a = "rbxassetid://"..tostring(Config.Custom_Sky_Id)
+        sky.SkyboxBk, sky.SkyboxDn, sky.SkyboxFt, sky.SkyboxLf, sky.SkyboxRt, sky.SkyboxUp = a,a,a,a,a,a
+    else
+        local sky = Lighting:FindFirstChildOfClass("Sky")
+        if sky then sky:Destroy() end
+    end
+end, function(c) AddTextBox(c, "SkyID", "Custom_Sky_Id") end)
+AddToggle(MB, "DeathAudio", "Death_Audio", nil, function(c)
+    AddTextBox(c, "SoundID", "Death_Audio_Id")
+end)
+AddToggle(MB, "Cursor", "Interactive_Cursor")
+AddToggle(MB, "FPSOpt", "FPS_Opt")
+AddToggle(MB, "Spoof", "Device_Spoof")
 
 ----------------------------------------------------------------
 -- LANGUAGE BAR
 ----------------------------------------------------------------
+local LB = make("Frame", Root)
+LB.Name = "LanguageBar"
+LB.AnchorPoint = Vector2.new(.5,0)
+LB.Position = UDim2.new(.5,0,0,18)
+LB.Size = UDim2.fromOffset(220,48)
+LB.BackgroundColor3 = T.Panel2
+LB.BorderSizePixel = 0
+LB.ZIndex = 1000
+cr(LB,12); st(LB,T.Border,1.2,.05)
 
-local LanguageBar =
-	Instance.new("Frame")
+local LL = make("TextLabel", LB)
+LL.Position = UDim2.fromOffset(12,0)
+LL.Size = UDim2.fromOffset(60,48)
+LL.BackgroundTransparency = 1
+LL.Text = Tr("Language")
+LL.TextColor3 = T.TextS
+LL.TextSize = 10
+LL.Font = Enum.Font.GothamMedium
+LL.TextXAlignment = Enum.TextXAlignment.Left
+LL.ZIndex = 1001
 
-LanguageBar.Name =
-	"LanguageBar"
+local ENB = make("TextButton", LB)
+ENB.Position = UDim2.fromOffset(86,10)
+ENB.Size = UDim2.fromOffset(56,28)
+ENB.BackgroundColor3 = T.Accent
+ENB.BorderSizePixel = 0
+ENB.Text = "EN"
+ENB.TextColor3 = T.Text
+ENB.TextSize = 10
+ENB.Font = Enum.Font.GothamBold
+ENB.AutoButtonColor = false
+ENB.ZIndex = 1001
+cr(ENB,8)
 
-LanguageBar.AnchorPoint =
-	Vector2.new(
-		0.5,
-		0
-	)
+local KOB = make("TextButton", LB)
+KOB.Position = UDim2.fromOffset(150,10)
+KOB.Size = UDim2.fromOffset(56,28)
+KOB.BackgroundColor3 = T.Off
+KOB.BorderSizePixel = 0
+KOB.Text = "KO"
+KOB.TextColor3 = T.TextS
+KOB.TextSize = 10
+KOB.Font = Enum.Font.GothamBold
+KOB.AutoButtonColor = false
+KOB.ZIndex = 1001
+cr(KOB,8)
 
-LanguageBar.Position =
-	UDim2.new(
-		0.5,
-		0,
-		0,
-		18
-	)
-
-LanguageBar.Size =
-	UDim2.fromOffset(
-		220,
-		48
-	)
-
-LanguageBar.BackgroundColor3 =
-	THEME.Panel2
-
-LanguageBar.BorderSizePixel =
-	0
-
-LanguageBar.ZIndex =
-	1000
-
-LanguageBar.Parent =
-	Root
-
-corner(
-	LanguageBar,
-	12
-)
-
-stroke(
-	LanguageBar,
-	THEME.Border,
-	1.2,
-	0.05
-)
-
-local LanguageLabel =
-	Instance.new(
-		"TextLabel"
-	)
-
-LanguageLabel.Position =
-	UDim2.fromOffset(
-		12,
-		0
-	)
-
-LanguageLabel.Size =
-	UDim2.fromOffset(
-		60,
-		48
-	)
-
-LanguageLabel.BackgroundTransparency =
-	1
-
-LanguageLabel.Text =
-	T("Language")
-
-LanguageLabel.TextColor3 =
-	THEME.TextSecondary
-
-LanguageLabel.TextSize =
-	10
-
-LanguageLabel.Font =
-	Enum.Font.GothamMedium
-
-LanguageLabel.TextXAlignment =
-	Enum.TextXAlignment.Left
-
-LanguageLabel.ZIndex =
-	1001
-
-LanguageLabel.Parent =
-	LanguageBar
-
-local ENButton =
-	Instance.new(
-		"TextButton"
-	)
-
-ENButton.Position =
-	UDim2.fromOffset(
-		86,
-		10
-	)
-
-ENButton.Size =
-	UDim2.fromOffset(
-		56,
-		28
-	)
-
-ENButton.BackgroundColor3 =
-	THEME.Accent
-
-ENButton.BorderSizePixel =
-	0
-
-ENButton.Text =
-	"EN"
-
-ENButton.TextColor3 =
-	THEME.Text
-
-ENButton.TextSize =
-	10
-
-ENButton.Font =
-	Enum.Font.GothamBold
-
-ENButton.AutoButtonColor =
-	false
-
-ENButton.ZIndex =
-	1001
-
-ENButton.Parent =
-	LanguageBar
-
-corner(
-	ENButton,
-	8
-)
-
-local KOButton =
-	Instance.new(
-		"TextButton"
-	)
-
-KOButton.Position =
-	UDim2.fromOffset(
-		150,
-		10
-	)
-
-KOButton.Size =
-	UDim2.fromOffset(
-		56,
-		28
-	)
-
-KOButton.BackgroundColor3 =
-	THEME.Off
-
-KOButton.BorderSizePixel =
-	0
-
-KOButton.Text =
-	"KO"
-
-KOButton.TextColor3 =
-	THEME.TextSecondary
-
-KOButton.TextSize =
-	10
-
-KOButton.Font =
-	Enum.Font.GothamBold
-
-KOButton.AutoButtonColor =
-	false
-
-KOButton.ZIndex =
-	1001
-
-KOButton.Parent =
-	LanguageBar
-
-corner(
-	KOButton,
-	8
-)
-
-local function RefreshAllUI()
-	for _, item in ipairs(
-		UIElements
-	) do
-		if item.Type ==
-			"Toggle"
-			and item.Button
-			and item.Button.Parent then
-
-			item.Button.Text =
-				"  " ..
-				T(item.NameKey)
-		end
-	end
-
-	for _, window in ipairs(
-		Windows
-	) do
-		if window.Title
-			and window.Title.Parent then
-
-			window.Title.Text =
-				T(
-					window.TitleKey
-				)
-		end
-	end
-
-	LanguageLabel.Text =
-		T("Language")
-
-	if KeybindLabel then
-		KeybindLabel.Text =
-			T("Keybind")
-	end
-
-	if MobileButton then
-		MobileButton.Text =
-			T("MobileToggle")
-	end
-
-	if BindingMode
-		and KeybindButton then
-
-		KeybindButton.Text =
-			T("PressToBind")
-	end
+local function RefreshUI()
+    for _,v in ipairs(UIE) do if v.Type=="Toggle" and v.Button and v.Button.Parent then v.Button.Text = "  "..Tr(v.NameKey) end end
+    for _,v in ipairs(Windows) do if v.Title and v.Title.Parent then v.Title.Text = Tr(v.TitleKey) end end
+    LL.Text = Tr("Language")
+    if KL then KL.Text = Tr("Keybind") end
+    if MBtn then MBtn.Text = Tr("MobileToggle") end
+    if BM and KBtn then KBtn.Text = Tr("PressToBind") end
 end
 
-ENButton.MouseButton1Click:Connect(
-	function()
-
-		Config.Language =
-			"EN"
-
-		ENButton.BackgroundColor3 =
-			THEME.Accent
-
-		ENButton.TextColor3 =
-			THEME.Text
-
-		KOButton.BackgroundColor3 =
-			THEME.Off
-
-		KOButton.TextColor3 =
-			THEME.TextSecondary
-
-		RefreshAllUI()
-	end
-)
-
-KOButton.MouseButton1Click:Connect(
-	function()
-
-		Config.Language =
-			"KO"
-
-		KOButton.BackgroundColor3 =
-			THEME.Accent
-
-		KOButton.TextColor3 =
-			THEME.Text
-
-		ENButton.BackgroundColor3 =
-			THEME.Off
-
-		ENButton.TextColor3 =
-			THEME.TextSecondary
-
-		RefreshAllUI()
-	end
-)
+ENB.MouseButton1Click:Connect(function()
+    Config.Language = "EN"
+    ENB.BackgroundColor3 = T.Accent; ENB.TextColor3 = T.Text
+    KOB.BackgroundColor3 = T.Off; KOB.TextColor3 = T.TextS
+    RefreshUI()
+end)
+KOB.MouseButton1Click:Connect(function()
+    Config.Language = "KO"
+    KOB.BackgroundColor3 = T.Accent; KOB.TextColor3 = T.Text
+    ENB.BackgroundColor3 = T.Off; ENB.TextColor3 = T.TextS
+    RefreshUI()
+end)
 
 ----------------------------------------------------------------
 -- MENU TOGGLE
 ----------------------------------------------------------------
-
-local MenuVisible =
-	true
-
+local MenuVisible = true
 local function ToggleMenu()
-	MenuVisible =
-		not MenuVisible
-
-	for _, window in ipairs(
-		Windows
-	) do
-		window.Frame.Visible =
-			MenuVisible
-	end
-
-	Dimmer.Visible =
-		MenuVisible
-
-	LanguageBar.Visible =
-		MenuVisible
-
-	if not MenuVisible then
-		ClosePopup()
-	end
+    MenuVisible = not MenuVisible
+    for _,v in ipairs(Windows) do v.Frame.Visible = MenuVisible end
+    Dimmer.Visible = MenuVisible
+    LB.Visible = MenuVisible
+    if not MenuVisible then ClosePopup() end
 end
 
 ----------------------------------------------------------------
--- MOBILE / PC CONTROL
+-- MOBILE / PC
 ----------------------------------------------------------------
-
-local IsMobile =
-	UserInputService.TouchEnabled
-	and not UserInputService.KeyboardEnabled
-
-local MobileButton
-local KeybindPanel
-local KeybindLabel
-local KeybindButton
-
-local BindingMode =
-	false
+local IsMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local MBtn, KP, KL, KBtn, BM = false
 
 if IsMobile then
-
-	MobileButton =
-		Instance.new(
-			"TextButton"
-		)
-
-	MobileButton.AnchorPoint =
-		Vector2.new(
-			0,
-			0.5
-		)
-
-	MobileButton.Position =
-		UDim2.new(
-			0,
-			14,
-			0.5,
-			0
-		)
-
-	MobileButton.Size =
-		UDim2.fromOffset(
-			50,
-			50
-		)
-
-	MobileButton.BackgroundColor3 =
-		THEME.Accent
-
-	MobileButton.BorderSizePixel =
-		0
-
-	MobileButton.Text =
-		T("MobileToggle")
-
-	MobileButton.TextColor3 =
-		THEME.Text
-
-	MobileButton.TextSize =
-		12
-
-	MobileButton.Font =
-		Enum.Font.GothamBold
-
-	MobileButton.AutoButtonColor =
-		false
-
-	MobileButton.ZIndex =
-		3000
-
-	MobileButton.Parent =
-		Root
-
-	corner(
-		MobileButton,
-		14
-	)
-
-	stroke(
-		MobileButton,
-		THEME.AccentBright,
-		1.3,
-		0
-	)
-
-	MobileButton.MouseButton1Click:Connect(
-		ToggleMenu
-	)
-
+    MBtn = make("TextButton", Root)
+    MBtn.AnchorPoint = Vector2.new(0,.5)
+    MBtn.Position = UDim2.new(0,14,.5,0)
+    MBtn.Size = UDim2.fromOffset(50,50)
+    MBtn.BackgroundColor3 = T.Accent
+    MBtn.BorderSizePixel = 0
+    MBtn.Text = Tr("MobileToggle")
+    MBtn.TextColor3 = T.Text
+    MBtn.TextSize = 12
+    MBtn.Font = Enum.Font.GothamBold
+    MBtn.AutoButtonColor = false
+    MBtn.ZIndex = 3000
+    cr(MBtn,14); st(MBtn,T.AccentB,1.3,0)
+    MBtn.MouseButton1Click:Connect(ToggleMenu)
 else
+    KP = make("Frame", Root)
+    KP.AnchorPoint = Vector2.new(0,1)
+    KP.Position = UDim2.new(0,16,1,-16)
+    KP.Size = UDim2.fromOffset(190,64)
+    KP.BackgroundColor3 = T.Panel2
+    KP.BorderSizePixel = 0
+    KP.ZIndex = 3000
+    cr(KP,12); st(KP,T.Border,1.2,.05)
 
-	KeybindPanel =
-		Instance.new(
-			"Frame"
-		)
+    KL = make("TextLabel", KP)
+    KL.Position = UDim2.fromOffset(10,7)
+    KL.Size = UDim2.new(1,-20,0,14)
+    KL.BackgroundTransparency = 1
+    KL.Text = Tr("Keybind")
+    KL.TextColor3 = T.TextS
+    KL.TextSize = 9
+    KL.Font = Enum.Font.Gotham
+    KL.TextXAlignment = Enum.TextXAlignment.Left
+    KL.ZIndex = 3001
 
-	KeybindPanel.AnchorPoint =
-		Vector2.new(
-			0,
-			1
-		)
+    KBtn = make("TextButton", KP)
+    KBtn.Position = UDim2.fromOffset(10,28)
+    KBtn.Size = UDim2.new(1,-20,0,24)
+    KBtn.BackgroundColor3 = T.Off
+    KBtn.BorderSizePixel = 0
+    KBtn.Text = Config.MenuKey.Name
+    KBtn.TextColor3 = T.Text
+    KBtn.TextSize = 10
+    KBtn.Font = Enum.Font.GothamBold
+    KBtn.AutoButtonColor = false
+    KBtn.ZIndex = 3001
+    cr(KBtn,7); st(KBtn,T.Border,1,0)
 
-	KeybindPanel.Position =
-		UDim2.new(
-			0,
-			16,
-			1,
-			-16
-		)
-
-	KeybindPanel.Size =
-		UDim2.fromOffset(
-			190,
-			64
-		)
-
-	KeybindPanel.BackgroundColor3 =
-		THEME.Panel2
-
-	KeybindPanel.BorderSizePixel =
-		0
-
-	KeybindPanel.ZIndex =
-		3000
-
-	KeybindPanel.Parent =
-		Root
-
-	corner(
-		KeybindPanel,
-		12
-	)
-
-	stroke(
-		KeybindPanel,
-		THEME.Border,
-		1.2,
-		0.05
-	)
-
-	KeybindLabel =
-		Instance.new(
-			"TextLabel"
-		)
-
-	KeybindLabel.Position =
-		UDim2.fromOffset(
-			10,
-			7
-		)
-
-	KeybindLabel.Size =
-		UDim2.new(
-			1,
-			-20,
-			0,
-			14
-		)
-
-	KeybindLabel.BackgroundTransparency =
-		1
-
-	KeybindLabel.Text =
-		T("Keybind")
-
-	KeybindLabel.TextColor3 =
-		THEME.TextSecondary
-
-	KeybindLabel.TextSize =
-		9
-
-	KeybindLabel.Font =
-		Enum.Font.Gotham
-
-	KeybindLabel.TextXAlignment =
-		Enum.TextXAlignment.Left
-
-	KeybindLabel.ZIndex =
-		3001
-
-	KeybindLabel.Parent =
-		KeybindPanel
-
-	KeybindButton =
-		Instance.new(
-			"TextButton"
-		)
-
-	KeybindButton.Position =
-		UDim2.fromOffset(
-			10,
-			28
-		)
-
-	KeybindButton.Size =
-		UDim2.new(
-			1,
-			-20,
-			0,
-			24
-		)
-
-	KeybindButton.BackgroundColor3 =
-		THEME.Off
-
-	KeybindButton.BorderSizePixel =
-		0
-
-	KeybindButton.Text =
-		Config.MenuKey.Name
-
-	KeybindButton.TextColor3 =
-		THEME.Text
-
-	KeybindButton.TextSize =
-		10
-
-	KeybindButton.Font =
-		Enum.Font.GothamBold
-
-	KeybindButton.AutoButtonColor =
-		false
-
-	KeybindButton.ZIndex =
-		3001
-
-	KeybindButton.Parent =
-		KeybindPanel
-
-	corner(
-		KeybindButton,
-		7
-	)
-
-	stroke(
-		KeybindButton,
-		THEME.Border,
-		1,
-		0
-	)
-
-	KeybindButton.MouseButton1Click:Connect(
-		function()
-
-			BindingMode =
-				true
-
-			KeybindButton.Text =
-				T("PressToBind")
-		end
-	)
+    KBtn.MouseButton1Click:Connect(function()
+        BM = true
+        KBtn.Text = Tr("PressToBind")
+    end)
 end
 
 ----------------------------------------------------------------
 -- RIGHT SHIFT SINK
---
--- RightShift is consumed before Roblox's normal
--- Shift Lock action so using it for the UI does not
--- turn Shift Lock on/off.
 ----------------------------------------------------------------
-
-pcall(function()
-	ContextActionService:
-		UnbindAction(
-			"CubicUltimateHub_RightShift"
-		)
-end)
-
-ContextActionService:
-	BindActionAtPriority(
-		"CubicUltimateHub_RightShift",
-
-		function(
-			actionName,
-			inputState,
-			inputObject
-		)
-			if inputState ==
-				Enum.UserInputState.Begin then
-
-				if Config.MenuKey ==
-					Enum.KeyCode.RightShift
-					and
-					not BindingMode then
-
-					ToggleMenu()
-				end
-			end
-
-			return Enum.ContextActionResult.Sink
-		end,
-
-		false,
-
-		5000,
-
-		Enum.KeyCode.RightShift
-	)
+pcall(function() ContextActionService:UnbindAction("CubicUltimateHub_RightShift") end)
+ContextActionService:BindActionAtPriority("CubicUltimateHub_RightShift", function(_, state)
+    if state == Enum.UserInputState.Begin then
+        if Config.MenuKey == Enum.KeyCode.RightShift and not BM then ToggleMenu() end
+    end
+    return Enum.ContextActionResult.Sink
+end, false, 5000, Enum.KeyCode.RightShift)
 
 ----------------------------------------------------------------
 -- KEYBOARD INPUT
 ----------------------------------------------------------------
-
-UserInputService.InputBegan:Connect(
-	function(
-		input,
-		processed
-	)
-
-		if BindingMode
-			and input.UserInputType ==
-				Enum.UserInputType.Keyboard then
-
-			if input.KeyCode ~=
-				Enum.KeyCode.Unknown then
-
-				Config.MenuKey =
-					input.KeyCode
-
-				BindingMode =
-					false
-
-				if KeybindButton then
-					KeybindButton.Text =
-						Config.MenuKey.Name
-				end
-			end
-
-			return
-		end
-
-		if processed then
-			return
-		end
-
-		if input.UserInputType ==
-			Enum.UserInputType.Keyboard
-			and
-			input.KeyCode ==
-				Config.MenuKey then
-
-			if Config.MenuKey ~=
-				Enum.KeyCode.RightShift then
-
-				ToggleMenu()
-			end
-
-			return
-		end
-	end
-)
+UserInputService.InputBegan:Connect(function(i, p)
+    if BM and i.UserInputType == Enum.UserInputType.Keyboard then
+        if i.KeyCode ~= Enum.KeyCode.Unknown then
+            Config.MenuKey = i.KeyCode; BM = false
+            if KBtn then KBtn.Text = Config.MenuKey.Name end
+        end
+        return
+    end
+    if p then return end
+    if i.UserInputType == Enum.UserInputType.Keyboard and i.KeyCode == Config.MenuKey then
+        if Config.MenuKey ~= Enum.KeyCode.RightShift then ToggleMenu() end
+    end
+end)
 
 ----------------------------------------------------------------
 -- INITIAL STATE
 ----------------------------------------------------------------
+Config.Language = "EN"
+ENB.BackgroundColor3 = T.Accent
+KOB.BackgroundColor3 = T.Off
+for _,v in ipairs(Windows) do v.Frame.Visible = true end
+Dimmer.Visible = true
+LB.Visible = true
 
-Config.Language =
-	"EN"
+task.spawn(function()
+    while SG.Parent do
+        updScl()
+        if MBtn then MBtn.Position = UDim2.new(0,14,.5,0) end
+        if KP then KP.Position = UDim2.new(0,16,1,-16) end
+        task.wait(.35)
+    end
+end)
 
-ENButton.BackgroundColor3 =
-	THEME.Accent
-
-KOButton.BackgroundColor3 =
-	THEME.Off
-
-for _, window in ipairs(
-	Windows
-) do
-	window.Frame.Visible =
-		true
-end
-
-Dimmer.Visible =
-	true
-
-LanguageBar.Visible =
-	true
-
-----------------------------------------------------------------
--- KEEP CONTROLLERS IN PLACE
-----------------------------------------------------------------
-
-task.spawn(
-	function()
-		while ScreenGui.Parent do
-
-			updateScale()
-
-			if MobileButton then
-				MobileButton.Position =
-					UDim2.new(
-						0,
-						14,
-						0.5,
-						0
-					)
-			end
-
-			if KeybindPanel then
-				KeybindPanel.Position =
-					UDim2.new(
-						0,
-						16,
-						1,
-						-16
-					)
-			end
-
-			task.wait(
-				0.35
-			)
-		end
-	end
-)
+print("[Cubic UI] 최적화 버전 로드 완료!")
