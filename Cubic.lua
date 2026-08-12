@@ -3,8 +3,9 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-pngWJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
 
 
+--!nocheck
 -- ============================================================
--- CONFIG 자체 초기화
+-- CONFIG 자체 초기화 (UI 코드와 독립적)
 -- ============================================================
 if not getgenv().SharedConfig then
     getgenv().SharedConfig = {
@@ -48,7 +49,7 @@ end
 local Config = getgenv().SharedConfig
 
 -- ============================================================
--- 서비스 가져오기 (안전하게)
+-- 서비스 가져오기
 -- ============================================================
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -58,11 +59,41 @@ local Lighting = game:GetService("Lighting")
 local CoreGui = game:GetService("CoreGui")
 local GuiService = game:GetService("GuiService")
 
--- LocalPlayer를 안전하게 가져오기
+-- ============================================================
+-- ★★★ 중요: LocalPlayer를 안전하게 획득 ★★★
+-- ============================================================
 local LocalPlayer = Players.LocalPlayer
+if not LocalPlayer then
+    -- LocalPlayer가 없으면 생성될 때까지 대기
+    LocalPlayer = Players:WaitForChild("LocalPlayer")
+end
 
 -- ============================================================
--- 헬퍼 함수
+-- Character도 안전하게 가져오는 함수
+-- ============================================================
+local function GetMyCharacter()
+    if not LocalPlayer then return nil end
+    local char = LocalPlayer.Character
+    if char and char.Parent then
+        return char
+    end
+    return nil
+end
+
+local function GetMyHumanoid()
+    local char = GetMyCharacter()
+    if not char then return nil end
+    return char:FindFirstChild("Humanoid")
+end
+
+local function GetMyRoot()
+    local char = GetMyCharacter()
+    if not char then return nil end
+    return char:FindFirstChild("HumanoidRootPart")
+end
+
+-- ============================================================
+-- 기타 헬퍼 함수
 -- ============================================================
 local function GetCharacter(player)
     if not player then return nil end
@@ -79,14 +110,6 @@ local function IsAlive(player)
     local humanoid = GetHumanoid(player)
     if not humanoid then return false end
     return humanoid.Health > 0
-end
-
-local function GetMyRoot()
-    if not LocalPlayer then return nil end
-    local char = LocalPlayer.Character
-    if not char then return nil end
-    if not char.Parent then return nil end
-    return char:FindFirstChild("HumanoidRootPart")
 end
 
 local function GetClosestPlayer()
@@ -244,9 +267,9 @@ local function PerformRagebot()
     local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
     if not targetRoot then return end
 
-    local myChar = LocalPlayer.Character
+    local myChar = GetMyCharacter()
     if not myChar then return end
-    local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+    local myRoot = GetMyRoot()
     if not myRoot then return end
 
     local basePos = targetRoot.Position + Ragebot.Offset
@@ -258,7 +281,7 @@ local function PerformRagebot()
     local targetPos = basePos + jitter
 
     myRoot.CFrame = CFrame.new(targetPos)
-    local humanoid = myChar:FindFirstChild("Humanoid")
+    local humanoid = GetMyHumanoid()
     if humanoid then humanoid.PlatformStand = true end
 end
 
@@ -274,11 +297,8 @@ local function ToggleRagebot(state)
             Ragebot.Connection:Disconnect()
             Ragebot.Connection = nil
         end
-        local myChar = LocalPlayer.Character
-        if myChar then
-            local humanoid = myChar:FindFirstChild("Humanoid")
-            if humanoid then humanoid.PlatformStand = false end
-        end
+        local humanoid = GetMyHumanoid()
+        if humanoid then humanoid.PlatformStand = false end
     end
 end
 
@@ -292,7 +312,7 @@ local function PerformTriggerbot()
     local target = GetClosestPlayerToMouse()
     if not target then return end
 
-    local char = LocalPlayer.Character
+    local char = GetMyCharacter()
     if not char then return end
     local tool = char:FindFirstChildOfClass("Tool")
     if tool then
@@ -506,10 +526,7 @@ end
 -- INFINITE JUMP
 -- ============================================================
 local function SetupInfiniteJump()
-    if not LocalPlayer then return end
-    local char = LocalPlayer.Character
-    if not char then return end
-    local humanoid = char:FindFirstChild("Humanoid")
+    local humanoid = GetMyHumanoid()
     if not humanoid then return end
     if Config.Infinite_Jump then
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
@@ -534,11 +551,9 @@ local Fly = {Enabled = false, Flying = false, BodyVelocity = nil, BodyGyro = nil
 local function ToggleFly(state)
     Config.Fly_Mode = state
     if state then
-        local char = LocalPlayer.Character
-        if not char then return end
-        local root = char:FindFirstChild("HumanoidRootPart")
+        local root = GetMyRoot()
         if not root then return end
-        local humanoid = char:FindFirstChild("Humanoid")
+        local humanoid = GetMyHumanoid()
         if humanoid then humanoid.PlatformStand = true end
 
         Fly.BodyVelocity = Instance.new("BodyVelocity")
@@ -576,11 +591,8 @@ local function ToggleFly(state)
         Fly.Flying = false
         if Fly.BodyVelocity then Fly.BodyVelocity:Destroy(); Fly.BodyVelocity = nil end
         if Fly.BodyGyro then Fly.BodyGyro:Destroy(); Fly.BodyGyro = nil end
-        local char = LocalPlayer.Character
-        if char then
-            local humanoid = char:FindFirstChild("Humanoid")
-            if humanoid then humanoid.PlatformStand = false end
-        end
+        local humanoid = GetMyHumanoid()
+        if humanoid then humanoid.PlatformStand = false end
     end
 end
 
@@ -589,7 +601,7 @@ end
 -- ============================================================
 local function ToggleNoclip(state)
     Config.Noclip = state
-    local char = LocalPlayer.Character
+    local char = GetMyCharacter()
     if not char then return end
     for _, part in pairs(char:GetDescendants()) do
         if part:IsA("BasePart") then
@@ -604,10 +616,7 @@ end
 local SpeedHack = {Enabled = false, OriginalSpeed = 16}
 
 local function SetupSpeedHack()
-    if not LocalPlayer then return end
-    local char = LocalPlayer.Character
-    if not char then return end
-    local humanoid = char:FindFirstChild("Humanoid")
+    local humanoid = GetMyHumanoid()
     if not humanoid then return end
     if Config.Speed_Hack then
         SpeedHack.OriginalSpeed = humanoid.WalkSpeed
@@ -621,11 +630,8 @@ end
 
 local function OnSpeedChange()
     if Config.Speed_Hack then
-        local char = LocalPlayer.Character
-        if char then
-            local humanoid = char:FindFirstChild("Humanoid")
-            if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
-        end
+        local humanoid = GetMyHumanoid()
+        if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
     end
 end
 
@@ -793,7 +799,7 @@ local function SetupAntiAim(state)
         if AntiAim.Connection then AntiAim.Connection:Disconnect() end
         AntiAim.Connection = RunService.Heartbeat:Connect(function()
             if not Config.Anti_Aim then return end
-            local char = LocalPlayer.Character
+            local char = GetMyCharacter()
             if not char then return end
             local head = char:FindFirstChild("Head")
             if head then
@@ -817,11 +823,8 @@ local function UpdateAllFeatures()
         if Config.Ragebot then PerformRagebot() end
         if Config.Triggerbot then PerformTriggerbot() end
         if Config.Speed_Hack then
-            local char = LocalPlayer.Character
-            if char then
-                local humanoid = char:FindFirstChild("Humanoid")
-                if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
-            end
+            local humanoid = GetMyHumanoid()
+            if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
         end
     end)
 end
@@ -875,10 +878,25 @@ if type(Config) == "table" then
 end
 
 -- ============================================================
+-- CHARACTER ADDED / RESPAWN 이벤트 처리
+-- ============================================================
+LocalPlayer.CharacterAdded:Connect(function(char)
+    -- 캐릭터가 새로 생성되면 관련 기능 재설정
+    task.wait(0.5)
+    pcall(function()
+        if Config.Noclip then ToggleNoclip(true) end
+        if Config.Speed_Hack then SetupSpeedHack() end
+        if Config.Fly_Mode then ToggleFly(true) end
+        if Config.Infinite_Jump then SetupInfiniteJump() end
+        if Config.Anti_Aim then SetupAntiAim(true) end
+    end)
+end)
+
+-- ============================================================
 -- INITIALIZATION
 -- ============================================================
 task.spawn(function()
-    wait(1)
+    wait(1) -- 게임이 완전히 로드될 때까지 대기
     pcall(function()
         if Config.Ragebot then ToggleRagebot(true) end
         if Config.Interactive_Cursor then SetupRainbowCursor() end
