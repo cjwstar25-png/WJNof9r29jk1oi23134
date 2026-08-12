@@ -1,3 +1,5 @@
+loadstring(game:HttpGet(""))()
+
 --!nocheck
 ----------------------------------------------------------------
 -- CUBIC ULTIMATE HUB - UI ONLY (최적화)
