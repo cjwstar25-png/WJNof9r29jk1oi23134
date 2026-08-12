@@ -1,12 +1,22 @@
+--!nocheck
+
+-- ========== UI 중복 방지 (기존 ScreenGui 제거) ==========
+local CoreGui = game:GetService("CoreGui")
+local ExistingSG = CoreGui:FindFirstChild("CubicUltimateHub")
+if ExistingSG then
+    ExistingSG:Destroy()
+end
+-- ========================================================
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
-local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
-
 local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
 
 getgenv().SharedConfig = getgenv().SharedConfig or {
     Language = "EN",
@@ -41,7 +51,6 @@ getgenv().SharedConfig = getgenv().SharedConfig or {
     Interactive_Cursor = false,
     FPS_Opt = false,
 }
-
 local Config = getgenv().SharedConfig
 
 local T = {
@@ -63,7 +72,6 @@ local T = {
     OffB = Color3.fromRGB(35,78,145),
     Black = Color3.fromRGB(0,0,0),
 }
-
 local L = {
     EN = {
         Combat="Combat Systems", Visuals="Visuals & ESP", Player="Player Enhancements", Misc="Misc & World",
@@ -88,18 +96,14 @@ local L = {
         FOVRadius="FOV 범위", ShowFOV="FOV 원 표시",
     }
 }
-
 local function Tr(k) local lang = Config.Language=="KO" and "KO" or "EN" return (L[lang] and L[lang][k]) or L.EN[k] or k end
 
 local function cr(p,r) local c=Instance.new("UICorner") c.CornerRadius=UDim.new(0,r) c.Parent=p return c end
 local function st(p,c,t,tr) local s=Instance.new("UIStroke") s.Color=c s.Thickness=t s.Transparency=tr or 0 s.Parent=p return s end
 local function tw(i,d,p,s,dir) pcall(function() TweenService:Create(i,TweenInfo.new(d or .18,s or Enum.EasingStyle.Quart,dir or Enum.EasingDirection.Out),p):Play() end) end
 local function make(cls,p) local i=Instance.new(cls) i.Parent=p return i end
-local function size(i,x,y) i.Size=UDim2.fromOffset(x,y) end
-local function pos(i,x,y) i.Position=UDim2.fromOffset(x,y) end
-local function scale(i,x,y) i.Size=UDim2.new(x or 0,y or 0,0,0) end
-local function pscale(i,x,y) i.Position=UDim2.new(x or 0,y or 0,0,0) end
 
+-- ===== ScreenGui 생성 =====
 local SG = make("ScreenGui", CoreGui)
 SG.Name = "CubicUltimateHub"
 SG.ResetOnSpawn = false
@@ -139,6 +143,7 @@ end
 task.defer(updScl)
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.defer(updScl) end)
 
+-- ===== Popup (속성창) =====
 local Popup = make("Frame", Root)
 Popup.Name = "PropertiesPopup"
 Popup.Size = UDim2.fromOffset(360,330)
@@ -236,6 +241,7 @@ PC.MouseButton1Click:Connect(ClosePopup)
 local UIE = {}
 local Windows = {}
 
+-- ===== UI 컴포넌트들 =====
 local function AddTextBox(parent, tk, ck)
     local w = make("Frame", parent)
     w.Size = UDim2.new(1,0,0,70)
@@ -420,6 +426,7 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     return btn
 end
 
+-- ===== 윈도우 생성 =====
 local function CreateWindow(tk, xo)
     local w = make("ScrollingFrame", WL)
     w.Name = tk.."Window"
@@ -495,15 +502,12 @@ local function CreateWindow(tk, xo)
     body.CanvasSize = UDim2.fromOffset(0,0)
     body.ZIndex = 105
 
-    local list = make("UIListLayout", body)
-    list.SortOrder = Enum.SortOrder.LayoutOrder
-    list.Padding = UDim.new(0,9)
-
-    local pad = make("UIPadding", body)
-    pad.PaddingTop = UDim.new(0,2)
-    pad.PaddingBottom = UDim.new(0,12)
-    pad.PaddingLeft = UDim.new(0,2)
-    pad.PaddingRight = UDim.new(0,2)
+    make("UIListLayout", body).SortOrder = Enum.SortOrder.LayoutOrder
+    make("UIListLayout", body).Padding = UDim.new(0,9)
+    make("UIPadding", body).PaddingTop = UDim.new(0,2)
+    make("UIPadding", body).PaddingBottom = UDim.new(0,12)
+    make("UIPadding", body).PaddingLeft = UDim.new(0,2)
+    make("UIPadding", body).PaddingRight = UDim.new(0,2)
 
     local drag = false
     local ds, sp
@@ -529,11 +533,13 @@ local function CreateWindow(tk, xo)
     return w, body
 end
 
+-- ===== 4개 윈도우 =====
 local WC, CB = CreateWindow("Combat", -477)
 local WV, VB = CreateWindow("Visuals", -159)
 local WP, PB = CreateWindow("Player", 159)
 local WM, MB = CreateWindow("Misc", 477)
 
+-- ===== 토글 추가 =====
 AddToggle(CB, "Aimbot", "Aimbot", nil, function(c)
     AddSlider(c, "Smoothness", "Aimbot_Smooth", 1, 10, 1)
     AddSlider(c, "FOVRadius", "Aimbot_FOV", 50, 500, 10)
@@ -579,6 +585,7 @@ AddToggle(MB, "Cursor", "Interactive_Cursor")
 AddToggle(MB, "FPSOpt", "FPS_Opt")
 AddToggle(MB, "Spoof", "Device_Spoof")
 
+-- ===== 언어 선택 바 =====
 local LB = make("Frame", Root)
 LB.Name = "LanguageBar"
 LB.AnchorPoint = Vector2.new(.5,0)
@@ -648,6 +655,7 @@ KOB.MouseButton1Click:Connect(function()
     RefreshUI()
 end)
 
+-- ===== 메뉴 토글 =====
 local MenuVisible = true
 local function ToggleMenu()
     MenuVisible = not MenuVisible
@@ -753,11 +761,5 @@ task.spawn(function()
     end
 end)
 
-task.defer(function()
-    local ok, err = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
-    end)
-    if not ok then
-        warn("[Cubic Feature] 실행 실패:", err)
-    end
-end)
+-- ===== [맨 마지막] 기능(Bypass) 로드 =====
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
