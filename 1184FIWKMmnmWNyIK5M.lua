@@ -761,5 +761,5 @@ task.spawn(function()
     end
 end)
 
--- ===== [맨 마지막] 기능(Bypass) 로드 =====
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
+-- ===== [맨 마지막] 기능(Cubic) 로드 =====
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
