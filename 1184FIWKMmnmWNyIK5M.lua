@@ -1,12 +1,14 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Bypass.lua"))()
+
 --!nocheck
 
--- ========== UI 중복 방지 (기존 ScreenGui 제거) ==========
+-- ========== UI 중복 방지 ==========
 local CoreGui = game:GetService("CoreGui")
 local ExistingSG = CoreGui:FindFirstChild("CubicUltimateHub")
 if ExistingSG then
     ExistingSG:Destroy()
 end
--- ========================================================
+-- ==================================
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -21,6 +23,17 @@ local Camera = Workspace.CurrentCamera
 getgenv().SharedConfig = getgenv().SharedConfig or {
     Language = "EN",
     MenuKey = Enum.KeyCode.RightShift,
+    -- Combat
+    Aimbot = false,
+    Aimbot_Smooth = 2,
+    Aimbot_FOV = 150,
+    Show_FOV = true,
+    Hitbox = "Head",
+    Silent_Aim = false,   -- <-- [신규] 사일런트 에임
+    Ragebot = false,
+    Triggerbot = false,
+    Anti_Aim = false,
+    -- Visuals
     ESP_Master = false,
     Box_ESP = false,
     Health_Bar = false,
@@ -28,28 +41,22 @@ getgenv().SharedConfig = getgenv().SharedConfig or {
     Team_Filter = false,
     Chams_Enabled = false,
     Tracert = false,
-    Aimbot = false,
-    Aimbot_Smooth = 2,
-    Aimbot_FOV = 150,
-    Show_FOV = true,
-    Hitbox = "Head",
-    Ragebot = false,
-    Triggerbot = false,
+    -- Player
     Infinite_Jump = false,
     Fly_Mode = false,
     Fly_Speed = 80,
     Noclip = false,
     Speed_Hack = false,
     Speed_Val = 40,
+    Third_Person = false,
+    -- Misc
     Skybox_Mode = false,
     Custom_Sky_Id = "600835154",
     Death_Audio = false,
     Death_Audio_Id = "84615664978587",
-    Anti_Aim = false,
-    Third_Person = false,
-    Device_Spoof = false,
     Interactive_Cursor = false,
     FPS_Opt = false,
+    Device_Spoof = false,
 }
 local Config = getgenv().SharedConfig
 
@@ -75,7 +82,7 @@ local T = {
 local L = {
     EN = {
         Combat="Combat Systems", Visuals="Visuals & ESP", Player="Player Enhancements", Misc="Misc & World",
-        Aimbot="Aimbot", Ragebot="Ragebot", Triggerbot="Triggerbot", AntiAim="Visual Anti-Aim",
+        Aimbot="Aimbot", SilentAim="Silent Aim", Ragebot="Ragebot", Triggerbot="Triggerbot", AntiAim="Visual Anti-Aim",
         ESPMaster="ESP Master", BoxESP="Box ESP", HealthBar="Health Bar", PlayerInfo="Player Info",
         TeamFilter="Team Filter", Chams="Chams", Tracert="Tracert", InfJump="Infinite Jump", FlyMode="Flight Mode",
         Noclip="Noclip", SpeedHack="Speed Hack", Forced3P="Third-Person", SkyChanger="Sky Atmosphere",
@@ -86,7 +93,7 @@ local L = {
     },
     KO = {
         Combat="전투 시스템", Visuals="시각 및 ESP", Player="플레이어 강화", Misc="기타 및 월드",
-        Aimbot="에임봇", Ragebot="레이지봇", Triggerbot="트리거봇", AntiAim="안티에임",
+        Aimbot="에임봇", SilentAim="사일런트 에임", Ragebot="레이지봇", Triggerbot="트리거봇", AntiAim="안티에임",
         ESPMaster="ESP 마스터", BoxESP="박스 ESP", HealthBar="체력 바", PlayerInfo="정보 표시",
         TeamFilter="팀 필터", Chams="하이라이트", Tracert="트레이서", InfJump="무한 점프", FlyMode="비행 모드",
         Noclip="노클립", SpeedHack="스피드 핵", Forced3P="강제 3인칭", SkyChanger="스카이 대기효과",
@@ -103,7 +110,7 @@ local function st(p,c,t,tr) local s=Instance.new("UIStroke") s.Color=c s.Thickne
 local function tw(i,d,p,s,dir) pcall(function() TweenService:Create(i,TweenInfo.new(d or .18,s or Enum.EasingStyle.Quart,dir or Enum.EasingDirection.Out),p):Play() end) end
 local function make(cls,p) local i=Instance.new(cls) i.Parent=p return i end
 
--- ===== ScreenGui 생성 =====
+-- ===== UI 생성 =====
 local SG = make("ScreenGui", CoreGui)
 SG.Name = "CubicUltimateHub"
 SG.ResetOnSpawn = false
@@ -143,7 +150,7 @@ end
 task.defer(updScl)
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.defer(updScl) end)
 
--- ===== Popup (속성창) =====
+-- ===== Popup =====
 local Popup = make("Frame", Root)
 Popup.Name = "PropertiesPopup"
 Popup.Size = UDim2.fromOffset(360,330)
@@ -241,7 +248,6 @@ PC.MouseButton1Click:Connect(ClosePopup)
 local UIE = {}
 local Windows = {}
 
--- ===== UI 컴포넌트들 =====
 local function AddTextBox(parent, tk, ck)
     local w = make("Frame", parent)
     w.Size = UDim2.new(1,0,0,70)
@@ -426,7 +432,6 @@ local function AddToggle(parent, tk, ck, cb, rcb)
     return btn
 end
 
--- ===== 윈도우 생성 =====
 local function CreateWindow(tk, xo)
     local w = make("ScrollingFrame", WL)
     w.Name = tk.."Window"
@@ -502,12 +507,15 @@ local function CreateWindow(tk, xo)
     body.CanvasSize = UDim2.fromOffset(0,0)
     body.ZIndex = 105
 
-    make("UIListLayout", body).SortOrder = Enum.SortOrder.LayoutOrder
-    make("UIListLayout", body).Padding = UDim.new(0,9)
-    make("UIPadding", body).PaddingTop = UDim.new(0,2)
-    make("UIPadding", body).PaddingBottom = UDim.new(0,12)
-    make("UIPadding", body).PaddingLeft = UDim.new(0,2)
-    make("UIPadding", body).PaddingRight = UDim.new(0,2)
+    local list = make("UIListLayout", body)
+    list.SortOrder = Enum.SortOrder.LayoutOrder
+    list.Padding = UDim.new(0,9)
+
+    local pad = make("UIPadding", body)
+    pad.PaddingTop = UDim.new(0,2)
+    pad.PaddingBottom = UDim.new(0,12)
+    pad.PaddingLeft = UDim.new(0,2)
+    pad.PaddingRight = UDim.new(0,2)
 
     local drag = false
     local ds, sp
@@ -533,22 +541,24 @@ local function CreateWindow(tk, xo)
     return w, body
 end
 
--- ===== 4개 윈도우 =====
+-- ===== 4개 윈도우 생성 =====
 local WC, CB = CreateWindow("Combat", -477)
 local WV, VB = CreateWindow("Visuals", -159)
 local WP, PB = CreateWindow("Player", 159)
 local WM, MB = CreateWindow("Misc", 477)
 
--- ===== 토글 추가 =====
+-- ===== ★★★ Combat 토글 (사일런트 에임 추가됨) ★★★ =====
 AddToggle(CB, "Aimbot", "Aimbot", nil, function(c)
     AddSlider(c, "Smoothness", "Aimbot_Smooth", 1, 10, 1)
     AddSlider(c, "FOVRadius", "Aimbot_FOV", 50, 500, 10)
     AddToggle(c, "ShowFOV", "Show_FOV")
 end)
+AddToggle(CB, "SilentAim", "Silent_Aim")  -- <-- [신규] 사일런트 에임 토글
 AddToggle(CB, "Ragebot", "Ragebot")
 AddToggle(CB, "Triggerbot", "Triggerbot")
 AddToggle(CB, "AntiAim", "Anti_Aim")
 
+-- ===== Visuals =====
 AddToggle(VB, "ESPMaster", "ESP_Master")
 AddToggle(VB, "BoxESP", "Box_ESP")
 AddToggle(VB, "HealthBar", "Health_Bar")
@@ -557,6 +567,7 @@ AddToggle(VB, "TeamFilter", "Team_Filter")
 AddToggle(VB, "Chams", "Chams_Enabled")
 AddToggle(VB, "Tracert", "Tracert")
 
+-- ===== Player =====
 AddToggle(PB, "InfJump", "Infinite_Jump")
 AddToggle(PB, "FlyMode", "Fly_Mode", nil, function(c)
     AddSlider(c, "FlySpeed", "Fly_Speed", 10, 200, 5)
@@ -567,6 +578,7 @@ AddToggle(PB, "SpeedHack", "Speed_Hack", nil, function(c)
 end)
 AddToggle(PB, "Forced3P", "Third_Person")
 
+-- ===== Misc =====
 AddToggle(MB, "SkyChanger", "Skybox_Mode", function(s)
     if s then
         local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky")
@@ -761,5 +773,379 @@ task.spawn(function()
     end
 end)
 
--- ===== [맨 마지막] 기능(Cubic) 로드 =====
-loadstring(game:HttpGet("https://raw.githubusercontent.com/cjwstar25-png/WJNof9r29jk1oi23134/refs/heads/main/Cubic.lua"))()
+-- ============================================================
+-- ======================= 기능 코드 ===========================
+-- ============================================================
+
+local function GetClosestPlayer()
+    local target = nil
+    local shortestDist = Config.Aimbot_FOV or 150
+    local mousePos = UserInputService:GetMouseLocation()
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                if Config.Team_Filter and player.Team == LocalPlayer.Team then
+                    continue
+                end
+
+                local hitPart = player.Character:FindFirstChild(Config.Hitbox or "Head") or player.Character.HumanoidRootPart
+                local screenPos, onScreen = Camera:WorldToViewportPoint(hitPart.Position)
+
+                if onScreen then
+                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                    if dist < shortestDist then
+                        shortestDist = dist
+                        target = hitPart
+                    end
+                end
+            end
+        end
+    end
+    return target
+end
+
+local FOVCircle = Drawing and Drawing.new("Circle")
+if FOVCircle then
+    FOVCircle.Visible = false
+    FOVCircle.Thickness = 1.5
+    FOVCircle.NumSides = 64
+    FOVCircle.Radius = Config.Aimbot_FOV or 150
+    FOVCircle.Filled = false
+    FOVCircle.Color = Color3.fromRGB(255, 86, 72)
+    FOVCircle.Transparency = 0.8
+end
+
+-- ===== ★★★ 사일런트 에임 + 에임봇 + 레이지봇 + 트리거봇 ★★★ =====
+RunService.RenderStepped:Connect(function()
+    -- FOV 서클
+    if FOVCircle and (Config.Aimbot or Config.Silent_Aim or Config.Ragebot) and Config.Show_FOV then
+        FOVCircle.Visible = true
+        FOVCircle.Radius = Config.Aimbot_FOV or 150
+        FOVCircle.Position = UserInputService:GetMouseLocation()
+    elseif FOVCircle then
+        FOVCircle.Visible = false
+    end
+
+    local target = GetClosestPlayer()
+    if not target then return end
+
+    -- ===== 1. 에임봇 (우클릭 + 부드러움) =====
+    if Config.Aimbot and type(mousemoverel) == "function" then
+        if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+            local targetPos = Camera:WorldToViewportPoint(target.Position)
+            local mousePos = UserInputService:GetMouseLocation()
+            local smooth = math.clamp(Config.Aimbot_Smooth or 2, 1, 10)
+            mousemoverel((targetPos.X - mousePos.X) / smooth, (targetPos.Y - mousePos.Y) / smooth)
+        end
+    end
+
+    -- ===== 2. 사일런트 에임 (좌클릭 시 즉시 타겟으로 조준, 부드러움 없음) =====
+    if Config.Silent_Aim and type(mousemoverel) == "function" then
+        if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+            local targetPos = Camera:WorldToViewportPoint(target.Position)
+            local mousePos = UserInputService:GetMouseLocation()
+            -- 즉시 조준 (부드러움 0, 순간 스냅)
+            mousemoverel(targetPos.X - mousePos.X, targetPos.Y - mousePos.Y)
+        end
+    end
+
+    -- ===== 3. 레이지봇 (자동 조준 + 자동 발사) =====
+    if Config.Ragebot and type(mousemoverel) == "function" then
+        local targetPos = Camera:WorldToViewportPoint(target.Position)
+        local mousePos = UserInputService:GetMouseLocation()
+        mousemoverel(targetPos.X - mousePos.X, targetPos.Y - mousePos.Y)
+        if type(mouse1click) == "function" then
+            mouse1click()
+            task.wait(0.05)
+        end
+    end
+
+    -- ===== 4. 트리거봇 (조준선에 적이 있으면 자동 발사) =====
+    if Config.Triggerbot then
+        local mouse = LocalPlayer:GetMouse()
+        local targetObj = mouse.Target
+        if targetObj and targetObj.Parent then
+            local char = targetObj.Parent
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid and Players:GetPlayerFromCharacter(char) then
+                local targetPlayer = Players:GetPlayerFromCharacter(char)
+                if not (Config.Team_Filter and targetPlayer.Team == LocalPlayer.Team) then
+                    if type(mouse1click) == "function" then
+                        mouse1click()
+                        task.wait(0.08)
+                    end
+                end
+            end
+        end
+    end
+
+    -- ===== 5. 안티에임 =====
+    if Config.Anti_Aim then
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(45), 0)
+        end
+    end
+end)
+
+-- ===== ESP =====
+local ESPCache = {}
+local function RemoveESP(player)
+    if ESPCache[player] then
+        for _, drawing in pairs(ESPCache[player]) do
+            pcall(function() drawing:Remove() end)
+        end
+        ESPCache[player] = nil
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if not Config.ESP_Master then
+        for player, _ in pairs(ESPCache) do RemoveESP(player) end
+        return
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+            if char and hrp and humanoid and humanoid.Health > 0 then
+                if Config.Team_Filter and player.Team == LocalPlayer.Team then
+                    RemoveESP(player)
+                    continue
+                end
+
+                if not ESPCache[player] then
+                    ESPCache[player] = {
+                        Box = Drawing and Drawing.new("Square"),
+                        HealthBarBg = Drawing and Drawing.new("Line"),
+                        HealthBar = Drawing and Drawing.new("Line"),
+                        Info = Drawing and Drawing.new("Text")
+                    }
+                    if ESPCache[player].Box then
+                        ESPCache[player].Box.Filled = false
+                        ESPCache[player].Box.Thickness = 1.5
+                    end
+                    if ESPCache[player].Info then
+                        ESPCache[player].Info.Size = 12
+                        ESPCache[player].Info.Center = true
+                        ESPCache[player].Info.Outline = true
+                        ESPCache[player].Info.Color = Color3.fromRGB(255, 255, 255)
+                    end
+                end
+
+                local esp = ESPCache[player]
+                if not esp or not esp.Box then
+                    RemoveESP(player)
+                    continue
+                end
+
+                local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+
+                if onScreen then
+                    local size = Vector3.new(2, 4, 0) * (Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0)).Y - Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0, 3, 0)).Y) / 2
+                    local boxSize = Vector2.new(math.abs(size.X), math.abs(size.Y))
+                    local boxPos = Vector2.new(pos.X - boxSize.X / 2, pos.Y - boxSize.Y / 2)
+
+                    if Config.Box_ESP then
+                        esp.Box.Visible = true
+                        esp.Box.Size = boxSize
+                        esp.Box.Position = boxPos
+                        esp.Box.Color = (player.Team == LocalPlayer.Team and Color3.fromRGB(0, 255, 0)) or Color3.fromRGB(220, 44, 38)
+                    else
+                        esp.Box.Visible = false
+                    end
+
+                    if Config.Health_Bar and esp.HealthBar and esp.HealthBarBg then
+                        local hpRatio = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+                        local barX = boxPos.X - 6
+                        local barY = boxPos.Y
+                        local barHeight = boxSize.Y
+
+                        esp.HealthBarBg.Visible = true
+                        esp.HealthBarBg.From = Vector2.new(barX, barY)
+                        esp.HealthBarBg.To = Vector2.new(barX, barY + barHeight)
+                        esp.HealthBarBg.Color = Color3.fromRGB(0, 0, 0)
+                        esp.HealthBarBg.Thickness = 3
+
+                        esp.HealthBar.Visible = true
+                        esp.HealthBar.From = Vector2.new(barX, barY + barHeight)
+                        esp.HealthBar.To = Vector2.new(barX, barY + (barHeight * (1 - hpRatio)))
+                        esp.HealthBar.Color = Color3.fromRGB(0, 255, 0)
+                        esp.HealthBar.Thickness = 1.5
+                    elseif esp.HealthBar and esp.HealthBarBg then
+                        esp.HealthBar.Visible = false
+                        esp.HealthBarBg.Visible = false
+                    end
+
+                    if Config.Info_Display and esp.Info then
+                        esp.Info.Visible = true
+                        esp.Info.Position = Vector2.new(pos.X, boxPos.Y - 18)
+                        esp.Info.Text = string.format("%s [%dHP]", player.Name, math.floor(humanoid.Health))
+                    elseif esp.Info then
+                        esp.Info.Visible = false
+                    end
+                else
+                    if esp.Box then esp.Box.Visible = false end
+                    if esp.HealthBar then esp.HealthBar.Visible = false end
+                    if esp.HealthBarBg then esp.HealthBarBg.Visible = false end
+                    if esp.Info then esp.Info.Visible = false end
+                end
+            else
+                RemoveESP(player)
+            end
+        end
+    end
+end)
+
+-- ===== 챔스 =====
+RunService.Heartbeat:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local highlight = player.Character:FindFirstChild("CubicHighlight")
+            if Config.Chams_Enabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.Name = "CubicHighlight"
+                    highlight.Adornee = player.Character
+                    highlight.FillColor = Color3.fromRGB(220, 44, 38)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    highlight.FillTransparency = 0.4
+                    highlight.Parent = player.Character
+                end
+            else
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+end)
+
+-- ===== 무한 점프 =====
+UserInputService.JumpRequest:Connect(function()
+    if Config.Infinite_Jump then
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChildOfClass("Humanoid") then
+            char:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+-- ===== 비행, 노클립, 스피드핵, 3인칭 =====
+local BodyVelocity, BodyGyro
+RunService.Stepped:Connect(function()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+
+    if not hrp or not humanoid then return end
+
+    if Config.Noclip then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+
+    if Config.Speed_Hack then
+        humanoid.WalkSpeed = Config.Speed_Val or 40
+    end
+
+    if Config.Fly_Mode then
+        if not BodyVelocity then
+            BodyVelocity = Instance.new("BodyVelocity")
+            BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            BodyVelocity.Parent = hrp
+        end
+        if not BodyGyro then
+            BodyGyro = Instance.new("BodyGyro")
+            BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+            BodyGyro.CFrame = Camera.CFrame
+            BodyGyro.Parent = hrp
+        end
+
+        local moveDir = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + Camera.CFrame.RightVector end
+
+        BodyVelocity.Velocity = moveDir * (Config.Fly_Speed or 80)
+        BodyGyro.CFrame = Camera.CFrame
+        humanoid.PlatformStand = true
+    else
+        if BodyVelocity then BodyVelocity:Destroy(); BodyVelocity = nil end
+        if BodyGyro then BodyGyro:Destroy(); BodyGyro = nil end
+        if humanoid then humanoid.PlatformStand = false end
+    end
+
+    if Config.Third_Person then
+        LocalPlayer.CameraMode = Enum.CameraMode.Classic
+        LocalPlayer.CameraMaxZoomDistance = 15
+        LocalPlayer.CameraMinZoomDistance = 15
+    end
+end)
+
+-- ===== 사망 오디오 =====
+LocalPlayer.CharacterAdded:Connect(function(char)
+    local humanoid = char:WaitForChild("Humanoid")
+    humanoid.Died:Connect(function()
+        if Config.Death_Audio then
+            local sound = Instance.new("Sound")
+            sound.SoundId = "rbxassetid://" .. tostring(Config.Death_Audio_Id)
+            sound.Volume = 2
+            sound.Parent = Workspace
+            sound:Play()
+            task.delay(5, function() sound:Destroy() end)
+        end
+    end)
+end)
+
+-- ===== 무지개 커서 =====
+local CursorDrawing = Drawing and Drawing.new("Triangle")
+if CursorDrawing then
+    CursorDrawing.Visible = false
+    CursorDrawing.Thickness = 1
+    CursorDrawing.Filled = true
+end
+
+RunService.RenderStepped:Connect(function()
+    if Config.Interactive_Cursor and CursorDrawing then
+        CursorDrawing.Visible = true
+        local mPos = UserInputService:GetMouseLocation()
+        CursorDrawing.PointA = mPos
+        CursorDrawing.PointB = mPos + Vector2.new(12, 18)
+        CursorDrawing.PointC = mPos + Vector2.new(18, 12)
+        CursorDrawing.Color = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+    elseif CursorDrawing then
+        CursorDrawing.Visible = false
+    end
+end)
+
+-- ===== FPS 최적화 =====
+RunService.Heartbeat:Connect(function()
+    if Config.FPS_Opt then
+        if type(setfpscap) == "function" then setfpscap(999) end
+        for _, obj in ipairs(Lighting:GetChildren()) do
+            if obj:IsA("PostEffect") or obj:IsA("Sky") then
+                pcall(function() obj.Enabled = false end)
+            end
+        end
+    end
+end)
+
+-- ===== 기기 스푸핑 =====
+RunService.RenderStepped:Connect(function()
+    if Config.Device_Spoof then
+        pcall(function()
+            if UserInputService.TouchEnabled and UserInputService.KeyboardEnabled then end
+        end)
+    end
+end)
