@@ -6,7 +6,6 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
-local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
@@ -788,7 +787,7 @@ end
 
 task.spawn(function()
     while true do
-        task.wait(0.5)
+        task.wait(1)
         if not getgenv().SharedConfig then
             Cleanup()
             break
