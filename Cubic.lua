@@ -9,9 +9,62 @@ local Lighting = game:GetService("Lighting")
 local CoreGui = game:GetService("CoreGui")
 local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local Config = getgenv().SharedConfig
+
+-- Config 안전 초기화 (getgenv()가 nil일 경우 대비)
+local function safeGetConfig()
+    local env = getgenv()
+    if not env then
+        env = {}
+        setgenv(env)
+    end
+    if not env.SharedConfig then
+        env.SharedConfig = {
+            Language = "EN",
+            MenuKey = Enum.KeyCode.RightShift,
+            ESP_Master = false,
+            Skeleton_ESP = false,
+            Box_ESP = false,
+            Health_Bar = false,
+            Tracer_Lines = false,
+            Info_Display = false,
+            Team_Filter = false,
+            Chams_Enabled = false,
+            Aimbot = false,
+            Aimbot_Smooth = 2,
+            Aimbot_FOV = 150,
+            Show_FOV = true,
+            Hitbox = "Head",
+            Ragebot = false,
+            Ragebot_Speed = 5,
+            Wall_Check = false,
+            Triggerbot = false,
+            Infinite_Jump = false,
+            Fly_Mode = false,
+            Fly_Speed = 80,
+            Noclip = false,
+            Speed_Hack = false,
+            Speed_Val = 40,
+            Skybox_Mode = false,
+            Custom_Sky_Id = "600835154",
+            Death_Audio = false,
+            Death_Audio_Id = "84615664978587",
+            Anti_Aim = false,
+            Third_Person = false,
+            Device_Spoof = false,
+            Interactive_Cursor = false,
+            FPS_Opt = false,
+        }
+    end
+    return env.SharedConfig
+end
+
+local Config = safeGetConfig()
+if type(Config) ~= "table" then
+    error("Config is not a table! Check getgenv().")
+end
+
+local Character = LocalPlayer.Character
+local Humanoid = Character and Character:FindFirstChild("Humanoid")
 
 local function GetCharacter(player)
     return player and player.Character or nil
@@ -27,10 +80,18 @@ local function IsAlive(player)
     return humanoid and humanoid.Health > 0
 end
 
+local function GetMyRoot()
+    local char = LocalPlayer.Character
+    if not char then return nil end
+    return char:FindFirstChild("HumanoidRootPart")
+end
+
 local function GetClosestPlayer()
     local closestDist = math.huge
     local closestPlayer = nil
-    local myPos = Character and Character:FindFirstChild("HumanoidRootPart") and Character.HumanoidRootPart.Position or Vector3.new(0,0,0)
+    local myRoot = GetMyRoot()
+    if not myRoot then return nil end
+    local myPos = myRoot.Position
 
     for _, player in pairs(Players:GetPlayers()) do
         if player == LocalPlayer then continue end
@@ -213,7 +274,9 @@ local function PerformTriggerbot()
     local target = GetClosestPlayerToMouse()
     if not target then return end
 
-    local tool = Character:FindFirstChildOfClass("Tool")
+    local char = LocalPlayer.Character
+    if not char then return end
+    local tool = char:FindFirstChildOfClass("Tool")
     if tool then
         local fireEvent = tool:FindFirstChild("FireEvent") or tool:FindFirstChild("RemoteEvent")
         if fireEvent and fireEvent:IsA("RemoteEvent") then
@@ -357,7 +420,9 @@ local function CreateESP(player)
         if rootPart then
             RunService.Heartbeat:Connect(function()
                 if rootPart and rootPart.Parent then
-                    local dist = (rootPart.Position - (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character.HumanoidRootPart.Position or Vector3.new(0,0,0))).Magnitude
+                    local myRoot = GetMyRoot()
+                    local myPos = myRoot and myRoot.Position or Vector3.new(0,0,0)
+                    local dist = (rootPart.Position - myPos).Magnitude
                     distLabel.Text = string.format("%.1f m", dist)
                 end
             end)
@@ -429,7 +494,9 @@ end
 
 local InfiniteJump = {Enabled = false, OriginalJumpPower = 50}
 local function SetupInfiniteJump()
-    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    local char = LocalPlayer.Character
+    if not char then return end
+    local humanoid = char:FindFirstChild("Humanoid")
     if not humanoid then return end
     if Config.Infinite_Jump then
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
@@ -448,7 +515,7 @@ end
 
 LocalPlayer.CharacterAdded:Connect(function(char)
     Character = char
-    Humanoid = char:WaitForChild("Humanoid")
+    Humanoid = char:FindFirstChild("Humanoid")
     SetupInfiniteJump()
 end)
 
@@ -525,7 +592,9 @@ end)
 
 local SpeedHack = {Enabled = false, OriginalSpeed = 16}
 local function SetupSpeedHack()
-    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+    local char = LocalPlayer.Character
+    if not char then return end
+    local humanoid = char:FindFirstChild("Humanoid")
     if not humanoid then return end
     if Config.Speed_Hack then
         SpeedHack.OriginalSpeed = humanoid.WalkSpeed
@@ -539,8 +608,11 @@ end
 
 local function OnSpeedChange()
     if Config.Speed_Hack then
-        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
+        local char = LocalPlayer.Character
+        if char then
+            local humanoid = char:FindFirstChild("Humanoid")
+            if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
+        end
     end
 end
 
@@ -707,82 +779,99 @@ local function SetupAntiAim(state)
     end
 end
 
+-- 모든 주요 함수를 pcall로 감싸서 실행
 local function UpdateAllFeatures()
-    if Config.Aimbot then PerformAimbot() end
-    if Config.Ragebot then PerformRagebot() end
-    if Config.Triggerbot then PerformTriggerbot() end
-    if Config.Speed_Hack then
-        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
-    end
+    pcall(function()
+        if Config.Aimbot then PerformAimbot() end
+        if Config.Ragebot then PerformRagebot() end
+        if Config.Triggerbot then PerformTriggerbot() end
+        if Config.Speed_Hack then
+            local char = LocalPlayer.Character
+            if char then
+                local humanoid = char:FindFirstChild("Humanoid")
+                if humanoid then humanoid.WalkSpeed = Config.Speed_Val or 40 end
+            end
+        end
+    end)
 end
 
 RunService.Heartbeat:Connect(UpdateAllFeatures)
 
-local configMetatable = {
-    __index = Config,
-    __newindex = function(t, key, value)
-        rawset(t, key, value)
-        if key == "Ragebot" then
-            ToggleRagebot(value)
-        elseif key == "Fly_Mode" then
-            ToggleFly(value)
-        elseif key == "Noclip" then
-            ToggleNoclip(value)
-        elseif key == "Speed_Hack" then
-            SetupSpeedHack()
-        elseif key == "Skybox_Mode" then
-            ToggleSkybox(value)
-        elseif key == "Third_Person" then
-            ToggleThirdPerson(value)
-        elseif key == "Device_Spoof" then
-            ToggleSpoof(value)
-        elseif key == "Interactive_Cursor" then
-            SetupRainbowCursor()
-        elseif key == "FPS_Opt" then
-            SetupFPSUnlocker(value)
-        elseif key == "Anti_Aim" then
-            SetupAntiAim(value)
-        elseif key == "ESP_Master" or key == "Box_ESP" or key == "Skeleton_ESP" or
-               key == "Health_Bar" or key == "Tracer_Lines" or key == "Info_Display" or
-               key == "Team_Filter" then
-            UpdateESP()
-        elseif key == "Chams_Enabled" then
-            UpdateChams()
-        elseif key == "Speed_Val" then
-            OnSpeedChange()
-        elseif key == "Show_FOV" or key == "Aimbot_FOV" then
-            UpdateFOVCircle()
+-- Config 변경 감지 (setmetatable은 Config가 테이블일 때만)
+if type(Config) == "table" then
+    local configMetatable = {
+        __index = Config,
+        __newindex = function(t, key, value)
+            rawset(t, key, value)
+            pcall(function()
+                if key == "Ragebot" then
+                    ToggleRagebot(value)
+                elseif key == "Fly_Mode" then
+                    ToggleFly(value)
+                elseif key == "Noclip" then
+                    ToggleNoclip(value)
+                elseif key == "Speed_Hack" then
+                    SetupSpeedHack()
+                elseif key == "Skybox_Mode" then
+                    ToggleSkybox(value)
+                elseif key == "Third_Person" then
+                    ToggleThirdPerson(value)
+                elseif key == "Device_Spoof" then
+                    ToggleSpoof(value)
+                elseif key == "Interactive_Cursor" then
+                    SetupRainbowCursor()
+                elseif key == "FPS_Opt" then
+                    SetupFPSUnlocker(value)
+                elseif key == "Anti_Aim" then
+                    SetupAntiAim(value)
+                elseif key == "ESP_Master" or key == "Box_ESP" or key == "Skeleton_ESP" or
+                       key == "Health_Bar" or key == "Tracer_Lines" or key == "Info_Display" or
+                       key == "Team_Filter" then
+                    UpdateESP()
+                elseif key == "Chams_Enabled" then
+                    UpdateChams()
+                elseif key == "Speed_Val" then
+                    OnSpeedChange()
+                elseif key == "Show_FOV" or key == "Aimbot_FOV" then
+                    UpdateFOVCircle()
+                end
+            end)
         end
-    end
-}
-setmetatable(Config, configMetatable)
+    }
+    setmetatable(Config, configMetatable)
+else
+    warn("Config is not a table, skipping metatable setup.")
+end
 
 task.spawn(function()
     wait(0.5)
-    if Config.Ragebot then ToggleRagebot(true) end
-    if Config.Interactive_Cursor then SetupRainbowCursor() end
-    if Config.Aimbot then UpdateFOVCircle() end
-    if Config.Fly_Mode then ToggleFly(true) end
-    if Config.Noclip then ToggleNoclip(true) end
-    if Config.Speed_Hack then SetupSpeedHack() end
-    if Config.Skybox_Mode then ToggleSkybox(true) end
-    if Config.Third_Person then ToggleThirdPerson(true) end
-    if Config.Device_Spoof then ToggleSpoof(true) end
-    if Config.FPS_Opt then SetupFPSUnlocker(true) end
-    if Config.Anti_Aim then SetupAntiAim(true) end
-    if Config.ESP_Master then UpdateESP() end
-    if Config.Chams_Enabled then UpdateChams() end
-    if Config.Infinite_Jump then SetupInfiniteJump() end
+    pcall(function()
+        if Config.Ragebot then ToggleRagebot(true) end
+        if Config.Interactive_Cursor then SetupRainbowCursor() end
+        if Config.Aimbot then UpdateFOVCircle() end
+        if Config.Fly_Mode then ToggleFly(true) end
+        if Config.Noclip then ToggleNoclip(true) end
+        if Config.Speed_Hack then SetupSpeedHack() end
+        if Config.Skybox_Mode then ToggleSkybox(true) end
+        if Config.Third_Person then ToggleThirdPerson(true) end
+        if Config.Device_Spoof then ToggleSpoof(true) end
+        if Config.FPS_Opt then SetupFPSUnlocker(true) end
+        if Config.Anti_Aim then SetupAntiAim(true) end
+        if Config.ESP_Master then UpdateESP() end
+        if Config.Chams_Enabled then UpdateChams() end
+        if Config.Infinite_Jump then SetupInfiniteJump() end
+    end)
 end)
 
 local function Cleanup()
-    if RainbowCursor.Connection then RainbowCursor.Connection:Disconnect() end
-    if RainbowCursor.Crosshair then RainbowCursor.Crosshair:Destroy() end
-    if Ragebot.Connection then Ragebot.Connection:Disconnect() end
-    if FOVCircle then FOVCircle:Destroy() end
-    for _, obj in pairs(ESP.Objects) do pcall(function() obj:Destroy() end) end
-    for _, obj in pairs(Chams.Objects) do pcall(function() obj:Destroy() end) end
+    pcall(function()
+        if RainbowCursor.Connection then RainbowCursor.Connection:Disconnect() end
+        if RainbowCursor.Crosshair then RainbowCursor.Crosshair:Destroy() end
+        if Ragebot.Connection then Ragebot.Connection:Disconnect() end
+        if FOVCircle then FOVCircle:Destroy() end
+        for _, obj in pairs(ESP.Objects) do pcall(function() obj:Destroy() end) end
+        for _, obj in pairs(Chams.Objects) do pcall(function() obj:Destroy() end) end
+    end)
 end
 
 task.spawn(function()
