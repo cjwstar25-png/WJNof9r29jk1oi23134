@@ -50,6 +50,26 @@ local Config = getgenv().SharedConfig
 -- 여기서부터 본격적인 기능 코드 시작
 -- ============================================================
 
+-- ============================================================
+-- 디버그: Config 상태 확인
+-- ============================================================
+print("[Cubic] Config 초기화 시작")
+print("[Cubic] getgenv() 존재:", getgenv() ~= nil)
+print("[Cubic] SharedConfig 존재:", getgenv().SharedConfig ~= nil)
+
+if getgenv().SharedConfig then
+    print("[Cubic] Config.ESP_Master:", getgenv().SharedConfig.ESP_Master)
+    print("[Cubic] Config.Aimbot:", getgenv().SharedConfig.Aimbot)
+    print("[Cubic] Config.Ragebot:", getgenv().SharedConfig.Ragebot)
+    print("[Cubic] Config.Fly_Mode:", getgenv().SharedConfig.Fly_Mode)
+else
+    print("[Cubic] SharedConfig가 nil입니다! UI 코드가 먼저 실행되었는지 확인하세요.")
+end
+
+print("[Cubic] LocalPlayer 존재:", Players.LocalPlayer ~= nil)
+print("[Cubic] Character 존재:", Players.LocalPlayer.Character ~= nil)
+print("[Cubic] Humanoid 존재:", Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("Humanoid") ~= nil)
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
